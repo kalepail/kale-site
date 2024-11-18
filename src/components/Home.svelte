@@ -1,8 +1,9 @@
 <script lang="ts">
     loadWasm();
 
-    let hash: string
     let threads = navigator.hardwareConcurrency;
+    let zeros = 5;
+    let hash: string
     let pool: wasm_bindgen.WorkerPool;
 
     const { Scene, WorkerPool } = wasm_bindgen;
@@ -54,7 +55,7 @@
 
         constructor(pool: wasm_bindgen.WorkerPool) {
             this.pool = pool;
-            this.scene = new Scene;
+            this.scene = new Scene(zeros);
         }
 
         render() {
@@ -79,11 +80,26 @@
     }
 </script>
 
-<p># of threads: {threads}</p>
-<label for="">
-    1
-    <input type="range" min="1" max={navigator.hardwareConcurrency} bind:value={threads}>
-    {navigator.hardwareConcurrency}
-</label>
-<button on:click={render} class="bg-black text-white p-2">Render</button>
-<pre><code>{hash}</code></pre>
+<div class="flex flex-col">
+    <div class="mb-5">
+        <p># of threads: {threads}</p>
+        <label for="">
+            1
+            <input type="range" min="1" max={navigator.hardwareConcurrency} bind:value={threads}>
+            {navigator.hardwareConcurrency}
+        </label>
+    </div>
+
+    <div class="mb-5">
+        <p># of zeros: {zeros}</p>
+        <label for="">
+            0
+            <input type="range" min="0" max="7" bind:value={zeros}>
+            7
+        </label>
+    </div>
+
+    <button class="bg-black text-white p-2 self-start mb-5" on:click={render}>Render</button>
+
+    <pre><code>{hash}</code></pre>
+</div>

@@ -20,8 +20,9 @@ declare namespace wasm_bindgen {
 	  /**
 	   * Creates a new scene from the JSON description in `object`, which we
 	   * deserialize here into an actual scene.
+	   * @param {number} zeros
 	   */
-	  constructor();
+	  constructor(zeros: number);
 	  /**
 	   * Renders this scene with the provided concurrency and worker pool.
 	   *
@@ -58,7 +59,7 @@ declare type InitInput = RequestInfo | URL | Response | BufferSource | WebAssemb
 
 declare interface InitOutput {
   readonly __wbg_scene_free: (a: number, b: number) => void;
-  readonly scene_new: (a: number) => void;
+  readonly scene_new: (a: number, b: number) => void;
   readonly scene_render: (a: number, b: number, c: number, d: number) => void;
   readonly __wbg_renderingscene_free: (a: number, b: number) => void;
   readonly renderingscene_promise: (a: number) => number;

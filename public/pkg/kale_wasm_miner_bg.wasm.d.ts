@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export function __wbg_scene_free(a: number, b: number): void;
-export function scene_new(a: number): void;
+export function scene_new(a: number, b: number): void;
 export function scene_render(a: number, b: number, c: number, d: number): void;
 export function __wbg_renderingscene_free(a: number, b: number): void;
 export function renderingscene_promise(a: number): number;

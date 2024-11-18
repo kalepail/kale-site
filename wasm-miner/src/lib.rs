@@ -26,6 +26,7 @@ extern "C" {
 
 #[wasm_bindgen]
 pub struct Scene {
+    zeros: u32,
 }
 
 #[wasm_bindgen]
@@ -33,10 +34,21 @@ impl Scene {
     /// Creates a new scene from the JSON description in `object`, which we
     /// deserialize here into an actual scene.
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Result<Scene, JsValue> {
+    pub fn new(zeros: u32) -> Result<Scene, JsValue> {
         console_error_panic_hook::set_once();
-        Ok(Scene {})
+        Ok(Scene {
+            zeros,
+        })
     }
+
+    // #[wasm_bindgen(constructor)]
+    // pub fn new(object: JsValue) -> Result<Scene, JsValue> {
+    //     console_error_panic_hook::set_once();
+    //     Ok(Scene {
+    //         inner: serde_wasm_bindgen::from_value(object)
+    //             .map_err(|e| JsValue::from(e.to_string()))?,
+    //     })
+    // }
 
     /// Renders this scene with the provided concurrency and worker pool.
     ///
@@ -98,7 +110,7 @@ impl Scene {
                             keccak.update(&local_hash_array);
                             keccak.finalize(&mut local_hash);
                             
-                            if check_difficulty(&local_hash, 6) {
+                            if check_difficulty(&local_hash, self.zeros) {
                                 found.store(true, std::sync::atomic::Ordering::Relaxed);
                                 return Some((local_hash, nonce));
                             }

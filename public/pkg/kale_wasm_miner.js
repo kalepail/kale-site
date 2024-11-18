@@ -315,11 +315,12 @@ class Scene {
     /**
      * Creates a new scene from the JSON description in `object`, which we
      * deserialize here into an actual scene.
+     * @param {number} zeros
      */
-    constructor() {
+    constructor(zeros) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.scene_new(retptr);
+            wasm.scene_new(retptr, zeros);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
