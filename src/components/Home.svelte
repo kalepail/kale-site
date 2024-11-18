@@ -43,37 +43,43 @@
     }
 
     function render() {
-        const state = new State(pool);
-        state.render();
+        const state = new State;
+        const scene = new Scene(zeros);
+        const rendering_scene = scene.render(Number(threads), pool);
+        state.render(rendering_scene);
     }
 
     class State {
         rendering = false;
-        pool: wasm_bindgen.WorkerPool;
-        scene: wasm_bindgen.Scene;
-        rendering_scene: wasm_bindgen.RenderingScene | null = null;
+        // pool: wasm_bindgen.WorkerPool;
+        // scene: wasm_bindgen.Scene;
+        // rendering_scene: wasm_bindgen.RenderingScene | null = null;
 
-        constructor(pool: wasm_bindgen.WorkerPool) {
-            this.pool = pool;
-            this.scene = new Scene(zeros);
+        constructor(
+            // pool: wasm_bindgen.WorkerPool
+            // scene: wasm_bindgen.Scene
+        ) {
+            // this.pool = pool;
+            // this.scene = scene;
         }
 
-        render() {
+        render(rendering_scene: wasm_bindgen.RenderingScene | null) {
             if (this.rendering) 
                 return;
 
             hash = "";
 
             this.rendering = true;
-            this.rendering_scene = this.scene.render(Number(threads), this.pool);
+            // rendering_scene = this.scene.render(Number(threads), pool);
 
-            this.rendering_scene.promise()
+            rendering_scene?.promise()
                 .then((data: Uint8Array) => {
                     hash = Array.from(data)
                         .map((byte) => byte.toString(16).padStart(2, "0"))
                         .join("");
 
                     this.rendering = false;
+                    rendering_scene = null;
                 })
                 .catch(console.error);
         }
