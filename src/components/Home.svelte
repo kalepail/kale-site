@@ -2,7 +2,7 @@
     loadWasm();
 
     let threads = navigator.hardwareConcurrency;
-    let zeros = 5;
+    let zeros = 4;
     let hash: string
     let pool: wasm_bindgen.WorkerPool;
 
@@ -66,7 +66,7 @@
 
             this.rendering = true;
             this.rendering_scene = this.scene.render(Number(threads), this.pool);
-            
+
             this.rendering_scene.promise()
                 .then((data: Uint8Array) => {
                     hash = Array.from(data)

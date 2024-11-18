@@ -1,8 +1,8 @@
 use futures_channel::oneshot;
 use js_sys::Promise;
+use rayon::prelude::*;
 use tiny_keccak::{Hasher, Keccak};
 use wasm_bindgen::prelude::*;
-use rayon::prelude::*;
 
 macro_rules! console_log {
     ($($t:tt)*) => (crate::log(&format_args!($($t)*).to_string()))
@@ -36,19 +36,8 @@ impl Scene {
     #[wasm_bindgen(constructor)]
     pub fn new(zeros: u32) -> Result<Scene, JsValue> {
         console_error_panic_hook::set_once();
-        Ok(Scene {
-            zeros,
-        })
+        Ok(Scene { zeros })
     }
-
-    // #[wasm_bindgen(constructor)]
-    // pub fn new(object: JsValue) -> Result<Scene, JsValue> {
-    //     console_error_panic_hook::set_once();
-    //     Ok(Scene {
-    //         inner: serde_wasm_bindgen::from_value(object)
-    //             .map_err(|e| JsValue::from(e.to_string()))?,
-    //     })
-    // }
 
     /// Renders this scene with the provided concurrency and worker pool.
     ///
@@ -95,21 +84,21 @@ impl Scene {
                         } else {
                             start_nonce + chunk_size
                         };
-                        
+
                         let mut local_hash = [0; 32];
                         let mut local_hash_array = [0; 76];
-                        
+
                         for nonce in start_nonce..end_nonce {
                             if found.load(std::sync::atomic::Ordering::Relaxed) {
                                 return None;
                             }
-                            
+
                             local_hash_array[4..12].copy_from_slice(&nonce.to_be_bytes());
-                            
+
                             let mut keccak = Keccak::v256();
                             keccak.update(&local_hash_array);
                             keccak.finalize(&mut local_hash);
-                            
+
                             if check_difficulty(&local_hash, self.zeros) {
                                 found.store(true, std::sync::atomic::Ordering::Relaxed);
                                 return Some((local_hash, nonce));

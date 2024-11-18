@@ -48,7 +48,7 @@ impl WorkerPool {
                 }),
             }),
         };
-        
+
         for _ in 0..initial {
             let worker = pool.spawn()?;
             pool.state.push(worker);
