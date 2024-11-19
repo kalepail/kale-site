@@ -94,4 +94,6 @@
 
     <pre><code>Nonce: {nonce}</code></pre>
     <pre><code>{time_output}</code></pre>
+
+    <p class="mt-10">Learn more about <a class="underline text-blue-600" href="https://github.com/kalepail/KALE-sc" target="_blank">The KALEpail Project</a></p>
 </div>
