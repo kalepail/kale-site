@@ -1,0 +1,18 @@
+{
+  "name": "kale-wasm-miner",
+  "type": "module",
+  "collaborators": [
+    "Tyler van der Hoeven <tyler@stellar.org>"
+  ],
+  "version": "0.0.0",
+  "files": [
+    "kale_wasm_miner_bg.wasm",
+    "kale_wasm_miner.js",
+    "kale_wasm_miner.d.ts"
+  ],
+  "main": "kale_wasm_miner.js",
+  "types": "kale_wasm_miner.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

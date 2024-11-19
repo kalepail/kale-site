@@ -1,111 +1,79 @@
 <script lang="ts">
+    import { threads } from 'wasm-feature-detect';
+    import init, { initThreadPool, mine } from '../../wasm-miner/pkg';
+
+    let thread_count = navigator.hardwareConcurrency;
+    let time_output = '';
+    let zeros = 5;
+    let nonce = 0n;
+
     loadWasm();
 
-    let threads = navigator.hardwareConcurrency;
-    let zeros = 4;
-    let hash: string
-    let pool: wasm_bindgen.WorkerPool;
-
-    const { Scene, WorkerPool } = wasm_bindgen;
-
     // First up, but try to do feature detection to provide better error messages
-    function loadWasm() {
-        let msg = "This demo requires a current version of Firefox (e.g., 79.0)";
-        
+    async function loadWasm() {
+        if (!(await threads())) {
+            alert("this browser does not support multi threading");
+            return;
+        }
+
         if (typeof SharedArrayBuffer !== "function") {
-            alert(
-                "this browser does not have SharedArrayBuffer support enabled" +
-                    "\n\n" +
-                    msg,
-            );
+            alert("this browser does not have SharedArrayBuffer support enabled");
             return;
         }
         
+        // Test for bulk memory operations with passive data segments
+        // (module (memory 1) (data passive ""))
         const buf = new Uint8Array([
             0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x05, 0x03, 0x01,
             0x00, 0x01, 0x0b, 0x03, 0x01, 0x01, 0x00,
         ]);
         
         if (!WebAssembly.validate(buf)) {
-            alert(
-                "this browser does not support passive Wasm memory, demo does not work" +
-                    "\n\n" +
-                    msg,
-            );
+            alert("this browser does not support passive Wasm memory");
             return;
         }
 
-        wasm_bindgen().then(boot).catch(console.error);
+        await init();
+        await initThreadPool(thread_count);
     }
 
-    function boot() {
-        pool = new WorkerPool(navigator.hardwareConcurrency);
-    }
+    async function render() {
+        let difficulty = prompt('Enter difficulty (1-10)', '7');
 
-    function render() {
-        const state = new State;
-        const scene = new Scene(zeros);
-        const rendering_scene = scene.render(Number(threads), pool);
-        state.render(rendering_scene);
-    }
+        if (!difficulty)
+            return;
 
-    class State {
-        rendering = false;
-        // pool: wasm_bindgen.WorkerPool;
-        // scene: wasm_bindgen.Scene;
-        // rendering_scene: wasm_bindgen.RenderingScene | null = null;
+        const start = performance.now();
+        const { start_nonce, local_nonce } = mine(Number(difficulty))!;
+        const time = performance.now() - start;
+        const hashRate = Number((local_nonce - start_nonce) * BigInt(thread_count)) / (time / 1e3) / 1e6;
 
-        constructor(
-            // pool: wasm_bindgen.WorkerPool
-            // scene: wasm_bindgen.Scene
-        ) {
-            // this.pool = pool;
-            // this.scene = scene;
-        }
-
-        render(rendering_scene: wasm_bindgen.RenderingScene | null) {
-            if (this.rendering) 
-                return;
-
-            hash = "";
-
-            this.rendering = true;
-            // rendering_scene = this.scene.render(Number(threads), pool);
-
-            rendering_scene?.promise()
-                .then((data: Uint8Array) => {
-                    hash = Array.from(data)
-                        .map((byte) => byte.toString(16).padStart(2, "0"))
-                        .join("");
-
-                    this.rendering = false;
-                    rendering_scene = null;
-                })
-                .catch(console.error);
-        }
+        time_output = `${difficulty} zeros : ${time.toFixed(2)} ms : ${hashRate.toFixed(2)} MH/s`;
+        nonce = local_nonce;
     }
 </script>
 
 <div class="flex flex-col">
-    <div class="mb-5">
-        <p># of threads: {threads}</p>
+    <!-- <div class="mb-5">
+        <p># of threads: {thread_count}</p>
         <label for="">
             1
-            <input type="range" min="1" max={navigator.hardwareConcurrency} bind:value={threads}>
+            <input type="range" min="1" max={navigator.hardwareConcurrency} bind:value={thread_count}>
             {navigator.hardwareConcurrency}
         </label>
-    </div>
+    </div> -->
 
     <div class="mb-5">
         <p># of zeros: {zeros}</p>
         <label for="">
             0
-            <input type="range" min="0" max="7" bind:value={zeros}>
-            7
+            <input type="range" min="0" max="9" bind:value={zeros}>
+            9
         </label>
     </div>
 
     <button class="bg-black text-white p-2 self-start mb-5" on:click={render}>Render</button>
 
-    <pre><code>{hash}</code></pre>
+    <pre><code>Nonce: {nonce}</code></pre>
+    <pre><code>{time_output}</code></pre>
 </div>

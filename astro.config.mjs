@@ -2,8 +2,8 @@
 import { defineConfig } from 'astro/config';
 import svelte from '@astrojs/svelte';
 import tailwind from '@astrojs/tailwind';
-import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
+// import wasm from "vite-plugin-wasm";
+// import topLevelAwait from "vite-plugin-top-level-await";
 
 // https://astro.build/config
 export default defineConfig({
@@ -16,8 +16,8 @@ export default defineConfig({
   integrations: [svelte(), tailwind()],
   vite: {
     plugins: [
-      wasm(),
-      topLevelAwait()
+      // wasm(),
+      // topLevelAwait()
     ]
   }
 });

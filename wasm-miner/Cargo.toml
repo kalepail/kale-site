@@ -1,6 +1,7 @@
 [package]
 name = "kale-wasm-miner"
 version = "0.0.0"
+authors = ["Tyler van der Hoeven <tyler@stellar.org>"]
 edition = "2021"
 publish = false
 
@@ -8,23 +9,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = "0.2.95"
-hex = "0.4.3"
+wasm-bindgen = "=0.2.93"
+wasm-bindgen-rayon = "1.2.2"
+rayon = { version = "1.10.0", features = ["web_spin_lock"] }
 tiny-keccak = { version = "2.0.2", features = ["keccak"] }
-console_error_panic_hook = "0.1.7"
-futures-channel-preview = "0.3.0-alpha.18"
-js-sys = "0.3.72"
-rayon = "1.10.0"
-rayon-core = "1.12.1"
-serde-wasm-bindgen = "0.6.5"
-wasm-bindgen-futures = "0.4.45"
-web-sys = { version = "0.3.72", features = [
-  'ErrorEvent',
-  'Event',
-  'Navigator',
-  'Window',
-  'Worker',
-  'DedicatedWorkerGlobalScope',
-  'MessageEvent'
-] }
-wasm-bindgen-cli = "0.2.95"

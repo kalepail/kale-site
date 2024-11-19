@@ -4,6 +4,5 @@ build-std = ['std', 'panic_abort']
 [build]
 target = "wasm32-unknown-unknown"
 rustflags = [
-    "-C", "target-cpu=native",
     "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
 ]
