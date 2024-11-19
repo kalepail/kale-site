@@ -6,6 +6,7 @@
     let time_output = "";
     let zeros = 5;
     let nonce = 0n;
+    let rendering = false;
 
     loadWasm();
 
@@ -35,21 +36,28 @@
             return;
         }
 
-        await init();
-        await initThreadPool(thread_count);
+        try {
+            await init();
+            await initThreadPool(thread_count);
+        } catch {}
     }
 
     async function render() {
-        const start = performance.now();
-        const { start_nonce, local_nonce } = mine(Number(zeros))!;
-        const time = performance.now() - start;
-        const hashRate =
-            Number((local_nonce - start_nonce) * BigInt(thread_count)) /
-            (time / 1e3) /
-            1e6;
+        rendering = true;
 
-        time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hashRate.toFixed(2)} MH/s`;
-        nonce = local_nonce;
+        setTimeout(() => {
+            const start = performance.now();
+            const { start_nonce, local_nonce } = mine(Number(zeros))!;
+            const time = performance.now() - start;
+            const hashRate =
+                Number((local_nonce - start_nonce) * BigInt(thread_count)) /
+                (time / 1e3) /
+                1e6;
+
+            time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hashRate.toFixed(2)} MH/s`;
+            nonce = local_nonce;
+            rendering = false;
+        }, 10);
     }
 </script>
 
@@ -72,8 +80,16 @@
         </label>
     </div>
 
-    <button class="{zeros > 8 ? 'bg-red-600' : zeros > 7 ? 'bg-orange-600' : zeros > 6 ? 'bg-yellow-600' : 'bg-green-600'} text-white p-2 self-start mb-5" on:click={render}
-        >Render</button
+    <button
+        class="{zeros > 8
+            ? 'bg-red-600'
+            : zeros > 7
+              ? 'bg-orange-600'
+              : zeros > 6
+                ? 'bg-yellow-600'
+                : 'bg-green-600'} text-white p-2 self-start mb-5 disabled:bg-gray-400"
+        on:click={render}
+        disabled={rendering}>Render{rendering ? "ing..." : ""}</button
     >
 
     <pre><code>Nonce: {nonce}</code></pre>
