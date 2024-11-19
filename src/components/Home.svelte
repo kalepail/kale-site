@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { threads } from 'wasm-feature-detect';
-    import init, { initThreadPool, mine } from '../../wasm-miner/pkg';
+    import { threads } from "wasm-feature-detect";
+    import init, { initThreadPool, mine } from "../../wasm-miner/pkg";
 
     let thread_count = navigator.hardwareConcurrency;
-    let time_output = '';
+    let time_output = "";
     let zeros = 5;
     let nonce = 0n;
 
@@ -17,17 +17,19 @@
         }
 
         if (typeof SharedArrayBuffer !== "function") {
-            alert("this browser does not have SharedArrayBuffer support enabled");
+            alert(
+                "this browser does not have SharedArrayBuffer support enabled",
+            );
             return;
         }
-        
+
         // Test for bulk memory operations with passive data segments
         // (module (memory 1) (data passive ""))
         const buf = new Uint8Array([
             0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x05, 0x03, 0x01,
             0x00, 0x01, 0x0b, 0x03, 0x01, 0x01, 0x00,
         ]);
-        
+
         if (!WebAssembly.validate(buf)) {
             alert("this browser does not support passive Wasm memory");
             return;
@@ -38,17 +40,15 @@
     }
 
     async function render() {
-        let difficulty = prompt('Enter difficulty (1-10)', '7');
-
-        if (!difficulty)
-            return;
-
         const start = performance.now();
-        const { start_nonce, local_nonce } = mine(Number(difficulty))!;
+        const { start_nonce, local_nonce } = mine(Number(zeros))!;
         const time = performance.now() - start;
-        const hashRate = Number((local_nonce - start_nonce) * BigInt(thread_count)) / (time / 1e3) / 1e6;
+        const hashRate =
+            Number((local_nonce - start_nonce) * BigInt(thread_count)) /
+            (time / 1e3) /
+            1e6;
 
-        time_output = `${difficulty} zeros : ${time.toFixed(2)} ms : ${hashRate.toFixed(2)} MH/s`;
+        time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hashRate.toFixed(2)} MH/s`;
         nonce = local_nonce;
     }
 </script>
@@ -67,12 +67,14 @@
         <p># of zeros: {zeros}</p>
         <label for="">
             0
-            <input type="range" min="0" max="9" bind:value={zeros}>
+            <input type="range" min="0" max="9" bind:value={zeros} />
             9
         </label>
     </div>
 
-    <button class="bg-black text-white p-2 self-start mb-5" on:click={render}>Render</button>
+    <button class="{zeros > 8 ? 'bg-red-600' : zeros > 7 ? 'bg-orange-600' : zeros > 6 ? 'bg-yellow-600' : 'bg-green-600'} text-white p-2 self-start mb-5" on:click={render}
+        >Render</button
+    >
 
     <pre><code>Nonce: {nonce}</code></pre>
     <pre><code>{time_output}</code></pre>
