@@ -2,13 +2,13 @@
 /* eslint-disable */
 /**
 * @param {number} thread_count
+* @param {bigint} runtime
 * @param {number} index
 * @param {Uint8Array} entropy
 * @param {Uint8Array} farmer
-* @param {number} min_zeros
-* @returns {Return | undefined}
+* @returns {Nonce | undefined}
 */
-export function mine(thread_count: number, index: number, entropy: Uint8Array, farmer: Uint8Array, min_zeros: number): Return | undefined;
+export function mine(thread_count: number, runtime: bigint, index: number, entropy: Uint8Array, farmer: Uint8Array): Nonce | undefined;
 /**
 * @param {number} num_threads
 * @returns {Promise<any>}
@@ -20,11 +20,14 @@ export function initThreadPool(num_threads: number): Promise<any>;
 export function wbg_rayon_start_worker(receiver: number): void;
 /**
 */
-export class Return {
+export class Nonce {
   free(): void;
 /**
 */
   local_nonce: bigint;
+/**
+*/
+  max_nonce: bigint;
 /**
 */
   start_nonce: bigint;
@@ -49,11 +52,13 @@ export class wbg_rayon_PoolBuilder {
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
-  readonly __wbg_return_free: (a: number, b: number) => void;
-  readonly __wbg_get_return_start_nonce: (a: number) => number;
-  readonly __wbg_set_return_start_nonce: (a: number, b: number) => void;
-  readonly __wbg_get_return_local_nonce: (a: number) => number;
-  readonly __wbg_set_return_local_nonce: (a: number, b: number) => void;
+  readonly __wbg_nonce_free: (a: number, b: number) => void;
+  readonly __wbg_get_nonce_start_nonce: (a: number) => number;
+  readonly __wbg_set_nonce_start_nonce: (a: number, b: number) => void;
+  readonly __wbg_get_nonce_local_nonce: (a: number) => number;
+  readonly __wbg_set_nonce_local_nonce: (a: number, b: number) => void;
+  readonly __wbg_get_nonce_max_nonce: (a: number) => number;
+  readonly __wbg_set_nonce_max_nonce: (a: number, b: number) => void;
   readonly mine: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
   readonly __wbg_wbg_rayon_poolbuilder_free: (a: number, b: number) => void;
   readonly wbg_rayon_poolbuilder_numThreads: (a: number) => number;

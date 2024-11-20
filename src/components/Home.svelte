@@ -4,7 +4,7 @@
 
     let thread_count = navigator.hardwareConcurrency;
     let time_output = "";
-    let zeros = 5;
+    let runtime = 1;
     let nonce = 0n;
     let rendering = false;
 
@@ -46,54 +46,62 @@
         rendering = true;
 
         setTimeout(() => {
-            const start = performance.now();
-            const { start_nonce, local_nonce } = mine(
-                thread_count,
-                0,
-                new Uint8Array(32),
-                new Uint8Array(32),
-                Number(zeros),
-            )!;
-            const time = performance.now() - start;
-            const hashRate =
-                Number((local_nonce - start_nonce) * BigInt(thread_count)) /
-                (time / 1e3) /
-                1e6;
+            try {
+                const index = Number(Math.random().toString().substring(2));
+                const entropy = new Uint8Array(32);
+                const farmer = new Uint8Array(32);
+                const start = performance.now();
 
-            time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hashRate.toFixed(2)} MH/s`;
-            nonce = local_nonce;
-            rendering = false;
+                const { start_nonce, local_nonce } = mine(
+                    thread_count,
+                    BigInt(runtime),
+                    index,
+                    entropy,
+                    farmer,
+                )!;
+
+                const time = performance.now() - start;
+                const hashRate =
+                    Number((local_nonce - start_nonce) * BigInt(thread_count)) /
+                    (time / 1e3) /
+                    1e6;
+
+                time_output = `${runtime} runtime : ${time.toFixed(2)} ms : ${hashRate.toFixed(2)} MH/s`;
+                nonce = local_nonce;
+                rendering = false;
+            } finally {
+                rendering = false;
+            }
         }, 10);
     }
 </script>
 
 <div class="flex flex-col">
-    <!-- <div class="mb-5">
+    <div class="mb-5">
         <p># of threads: {thread_count}</p>
         <label for="">
             1
-            <input type="range" min="1" max={navigator.hardwareConcurrency} bind:value={thread_count}>
+            <input
+                type="range"
+                min="1"
+                max={navigator.hardwareConcurrency}
+                bind:value={thread_count}
+            />
             {navigator.hardwareConcurrency}
         </label>
-    </div> -->
+    </div>
 
     <div class="mb-5">
-        <p># of zeros: {zeros}</p>
+        <p>runtime: {runtime}</p>
         <label for="">
-            0
-            <input type="range" min="0" max="9" bind:value={zeros} />
-            9
+            1
+            <input type="range" min="1" max="60" bind:value={runtime} />
+            60
         </label>
     </div>
 
     <button
-        class="{zeros > 8
-            ? 'bg-red-600'
-            : zeros > 7
-              ? 'bg-orange-600'
-              : zeros > 6
-                ? 'bg-yellow-600'
-                : 'bg-green-600'} text-white p-2 self-start mb-5 disabled:bg-gray-400"
+        class="bg-black text-white p-2 self-start mb-5 disabled:bg-gray-400"
         on:click={render}
         disabled={rendering}>Render{rendering ? "ing..." : ""}</button
     >

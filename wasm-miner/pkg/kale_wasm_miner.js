@@ -59,19 +59,19 @@ function passArray8ToWasm0(arg, malloc) {
 }
 /**
 * @param {number} thread_count
+* @param {bigint} runtime
 * @param {number} index
 * @param {Uint8Array} entropy
 * @param {Uint8Array} farmer
-* @param {number} min_zeros
-* @returns {Return | undefined}
+* @returns {Nonce | undefined}
 */
-export function mine(thread_count, index, entropy, farmer, min_zeros) {
+export function mine(thread_count, runtime, index, entropy, farmer) {
     const ptr0 = passArray8ToWasm0(entropy, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passArray8ToWasm0(farmer, wasm.__wbindgen_malloc);
     const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.mine(thread_count, index, ptr0, len0, ptr1, len1, min_zeros);
-    return ret === 0 ? undefined : Return.__wrap(ret);
+    const ret = wasm.mine(thread_count, runtime, index, ptr0, len0, ptr1, len1);
+    return ret === 0 ? undefined : Nonce.__wrap(ret);
 }
 
 function handleError(f, args) {
@@ -97,57 +97,70 @@ export function wbg_rayon_start_worker(receiver) {
     wasm.wbg_rayon_start_worker(receiver);
 }
 
-const ReturnFinalization = (typeof FinalizationRegistry === 'undefined')
+const NonceFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_return_free(ptr >>> 0, 1));
+    : new FinalizationRegistry(ptr => wasm.__wbg_nonce_free(ptr >>> 0, 1));
 /**
 */
-export class Return {
+export class Nonce {
 
     static __wrap(ptr) {
         ptr = ptr >>> 0;
-        const obj = Object.create(Return.prototype);
+        const obj = Object.create(Nonce.prototype);
         obj.__wbg_ptr = ptr;
-        ReturnFinalization.register(obj, obj.__wbg_ptr, obj);
+        NonceFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
 
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        ReturnFinalization.unregister(this);
+        NonceFinalization.unregister(this);
         return ptr;
     }
 
     free() {
         const ptr = this.__destroy_into_raw();
-        wasm.__wbg_return_free(ptr, 0);
+        wasm.__wbg_nonce_free(ptr, 0);
     }
     /**
     * @returns {bigint}
     */
     get start_nonce() {
-        const ret = wasm.__wbg_get_return_start_nonce(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_nonce_start_nonce(this.__wbg_ptr);
         return BigInt.asUintN(64, ret);
     }
     /**
     * @param {bigint} arg0
     */
     set start_nonce(arg0) {
-        wasm.__wbg_set_return_start_nonce(this.__wbg_ptr, arg0);
+        wasm.__wbg_set_nonce_start_nonce(this.__wbg_ptr, arg0);
     }
     /**
     * @returns {bigint}
     */
     get local_nonce() {
-        const ret = wasm.__wbg_get_return_local_nonce(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_nonce_local_nonce(this.__wbg_ptr);
         return BigInt.asUintN(64, ret);
     }
     /**
     * @param {bigint} arg0
     */
     set local_nonce(arg0) {
-        wasm.__wbg_set_return_local_nonce(this.__wbg_ptr, arg0);
+        wasm.__wbg_set_nonce_local_nonce(this.__wbg_ptr, arg0);
+    }
+    /**
+    * @returns {bigint}
+    */
+    get max_nonce() {
+        const ret = wasm.__wbg_get_nonce_max_nonce(this.__wbg_ptr);
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+    * @param {bigint} arg0
+    */
+    set max_nonce(arg0) {
+        wasm.__wbg_set_nonce_max_nonce(this.__wbg_ptr, arg0);
     }
 }
 
@@ -235,6 +248,22 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
     };
+    imports.wbg.__wbg_performance_a1b8bde2ee512264 = function(arg0) {
+        const ret = getObject(arg0).performance;
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbindgen_is_undefined = function(arg0) {
+        const ret = getObject(arg0) === undefined;
+        return ret;
+    };
+    imports.wbg.__wbg_timeOrigin_5c8b9e35719de799 = function(arg0) {
+        const ret = getObject(arg0).timeOrigin;
+        return ret;
+    };
+    imports.wbg.__wbg_now_abd80e969af37148 = function(arg0) {
+        const ret = getObject(arg0).now();
+        return ret;
+    };
     imports.wbg.__wbg_instanceof_Window_5012736c80a01584 = function(arg0) {
         let result;
         try {
@@ -273,10 +302,6 @@ function __wbg_get_imports() {
         const ret = global.global;
         return addHeapObject(ret);
     }, arguments) };
-    imports.wbg.__wbindgen_is_undefined = function(arg0) {
-        const ret = getObject(arg0) === undefined;
-        return ret;
-    };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };

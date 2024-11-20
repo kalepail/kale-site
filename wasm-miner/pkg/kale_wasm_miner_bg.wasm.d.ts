@@ -1,10 +1,12 @@
 /* tslint:disable */
 /* eslint-disable */
-export function __wbg_return_free(a: number, b: number): void;
-export function __wbg_get_return_start_nonce(a: number): number;
-export function __wbg_set_return_start_nonce(a: number, b: number): void;
-export function __wbg_get_return_local_nonce(a: number): number;
-export function __wbg_set_return_local_nonce(a: number, b: number): void;
+export function __wbg_nonce_free(a: number, b: number): void;
+export function __wbg_get_nonce_start_nonce(a: number): number;
+export function __wbg_set_nonce_start_nonce(a: number, b: number): void;
+export function __wbg_get_nonce_local_nonce(a: number): number;
+export function __wbg_set_nonce_local_nonce(a: number, b: number): void;
+export function __wbg_get_nonce_max_nonce(a: number): number;
+export function __wbg_set_nonce_max_nonce(a: number, b: number): void;
 export function mine(a: number, b: number, c: number, d: number, e: number, f: number, g: number): number;
 export function __wbg_wbg_rayon_poolbuilder_free(a: number, b: number): void;
 export function wbg_rayon_poolbuilder_numThreads(a: number): number;
