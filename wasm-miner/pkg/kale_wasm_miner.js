@@ -48,12 +48,29 @@ function getStringFromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return cachedTextDecoder.decode(getUint8ArrayMemory0().slice(ptr, ptr + len));
 }
+
+let WASM_VECTOR_LEN = 0;
+
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
 /**
-* @param {number} zeros
+* @param {number} thread_count
+* @param {number} index
+* @param {Uint8Array} entropy
+* @param {Uint8Array} farmer
+* @param {number} min_zeros
 * @returns {Return | undefined}
 */
-export function mine(zeros) {
-    const ret = wasm.mine(zeros);
+export function mine(thread_count, index, entropy, farmer, min_zeros) {
+    const ptr0 = passArray8ToWasm0(entropy, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(farmer, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.mine(thread_count, index, ptr0, len0, ptr1, len1, min_zeros);
     return ret === 0 ? undefined : Return.__wrap(ret);
 }
 

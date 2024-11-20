@@ -1,10 +1,14 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* @param {number} zeros
+* @param {number} thread_count
+* @param {number} index
+* @param {Uint8Array} entropy
+* @param {Uint8Array} farmer
+* @param {number} min_zeros
 * @returns {Return | undefined}
 */
-export function mine(zeros: number): Return | undefined;
+export function mine(thread_count: number, index: number, entropy: Uint8Array, farmer: Uint8Array, min_zeros: number): Return | undefined;
 /**
 * @param {number} num_threads
 * @returns {Promise<any>}
@@ -50,7 +54,7 @@ export interface InitOutput {
   readonly __wbg_set_return_start_nonce: (a: number, b: number) => void;
   readonly __wbg_get_return_local_nonce: (a: number) => number;
   readonly __wbg_set_return_local_nonce: (a: number, b: number) => void;
-  readonly mine: (a: number) => number;
+  readonly mine: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
   readonly __wbg_wbg_rayon_poolbuilder_free: (a: number, b: number) => void;
   readonly wbg_rayon_poolbuilder_numThreads: (a: number) => number;
   readonly wbg_rayon_poolbuilder_receiver: (a: number) => number;
@@ -58,6 +62,7 @@ export interface InitOutput {
   readonly initThreadPool: (a: number) => number;
   readonly wbg_rayon_start_worker: (a: number) => void;
   readonly memory: WebAssembly.Memory;
+  readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __wbindgen_thread_destroy: (a?: number, b?: number, c?: number) => void;
   readonly __wbindgen_start: (a: number) => void;

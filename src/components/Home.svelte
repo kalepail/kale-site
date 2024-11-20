@@ -47,7 +47,13 @@
 
         setTimeout(() => {
             const start = performance.now();
-            const { start_nonce, local_nonce } = mine(Number(zeros))!;
+            const { start_nonce, local_nonce } = mine(
+                thread_count,
+                0,
+                new Uint8Array(32),
+                new Uint8Array(32),
+                Number(zeros),
+            )!;
             const time = performance.now() - start;
             const hashRate =
                 Number((local_nonce - start_nonce) * BigInt(thread_count)) /
@@ -95,5 +101,11 @@
     <pre><code>Nonce: {nonce}</code></pre>
     <pre><code>{time_output}</code></pre>
 
-    <p class="mt-10">Learn more about <a class="underline text-blue-600" href="https://github.com/kalepail/KALE-sc" target="_blank">The KALEpail Project</a></p>
+    <p class="mt-10">
+        Learn more about <a
+            class="underline text-blue-600"
+            href="https://github.com/kalepail/KALE-sc"
+            target="_blank">The KALEpail Project</a
+        >
+    </p>
 </div>
