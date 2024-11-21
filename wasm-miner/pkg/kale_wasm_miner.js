@@ -57,21 +57,35 @@ function passArray8ToWasm0(arg, malloc) {
     WASM_VECTOR_LEN = arg.length;
     return ptr;
 }
+
+let cachedDataViewMemory0 = null;
+
+function getDataViewMemory0() {
+    if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer !== wasm.memory.buffer) {
+        cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
+    }
+    return cachedDataViewMemory0;
+}
+
+function getArrayU8FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
+}
 /**
 * @param {number} thread_count
-* @param {bigint} runtime
+* @param {bigint} nonce_count
 * @param {number} index
 * @param {Uint8Array} entropy
 * @param {Uint8Array} farmer
-* @returns {Nonce | undefined}
+* @returns {Nonce}
 */
-export function mine(thread_count, runtime, index, entropy, farmer) {
+export function mine(thread_count, nonce_count, index, entropy, farmer) {
     const ptr0 = passArray8ToWasm0(entropy, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passArray8ToWasm0(farmer, wasm.__wbindgen_malloc);
     const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.mine(thread_count, runtime, index, ptr0, len0, ptr1, len1);
-    return ret === 0 ? undefined : Nonce.__wrap(ret);
+    const ret = wasm.mine(thread_count, nonce_count, index, ptr0, len0, ptr1, len1);
+    return Nonce.__wrap(ret);
 }
 
 function handleError(f, args) {
@@ -124,43 +138,39 @@ export class Nonce {
         wasm.__wbg_nonce_free(ptr, 0);
     }
     /**
-    * @returns {bigint}
+    * @param {bigint} max_nonce
+    * @param {Uint8Array} local_hash
     */
-    get start_nonce() {
-        const ret = wasm.__wbg_get_nonce_start_nonce(this.__wbg_ptr);
-        return BigInt.asUintN(64, ret);
-    }
-    /**
-    * @param {bigint} arg0
-    */
-    set start_nonce(arg0) {
-        wasm.__wbg_set_nonce_start_nonce(this.__wbg_ptr, arg0);
-    }
-    /**
-    * @returns {bigint}
-    */
-    get local_nonce() {
-        const ret = wasm.__wbg_get_nonce_local_nonce(this.__wbg_ptr);
-        return BigInt.asUintN(64, ret);
-    }
-    /**
-    * @param {bigint} arg0
-    */
-    set local_nonce(arg0) {
-        wasm.__wbg_set_nonce_local_nonce(this.__wbg_ptr, arg0);
+    constructor(max_nonce, local_hash) {
+        const ptr0 = passArray8ToWasm0(local_hash, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.nonce_new(max_nonce, ptr0, len0);
+        this.__wbg_ptr = ret >>> 0;
+        NonceFinalization.register(this, this.__wbg_ptr, this);
+        return this;
     }
     /**
     * @returns {bigint}
     */
     get max_nonce() {
-        const ret = wasm.__wbg_get_nonce_max_nonce(this.__wbg_ptr);
+        const ret = wasm.nonce_max_nonce(this.__wbg_ptr);
         return BigInt.asUintN(64, ret);
     }
     /**
-    * @param {bigint} arg0
+    * @returns {Uint8Array}
     */
-    set max_nonce(arg0) {
-        wasm.__wbg_set_nonce_max_nonce(this.__wbg_ptr, arg0);
+    get local_hash() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.nonce_local_hash(retptr, this.__wbg_ptr);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var v1 = getArrayU8FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 1, 1);
+            return v1;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
 }
 
@@ -248,22 +258,6 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
     };
-    imports.wbg.__wbg_performance_a1b8bde2ee512264 = function(arg0) {
-        const ret = getObject(arg0).performance;
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_is_undefined = function(arg0) {
-        const ret = getObject(arg0) === undefined;
-        return ret;
-    };
-    imports.wbg.__wbg_timeOrigin_5c8b9e35719de799 = function(arg0) {
-        const ret = getObject(arg0).timeOrigin;
-        return ret;
-    };
-    imports.wbg.__wbg_now_abd80e969af37148 = function(arg0) {
-        const ret = getObject(arg0).now();
-        return ret;
-    };
     imports.wbg.__wbg_instanceof_Window_5012736c80a01584 = function(arg0) {
         let result;
         try {
@@ -302,6 +296,10 @@ function __wbg_get_imports() {
         const ret = global.global;
         return addHeapObject(ret);
     }, arguments) };
+    imports.wbg.__wbindgen_is_undefined = function(arg0) {
+        const ret = getObject(arg0) === undefined;
+        return ret;
+    };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
@@ -328,6 +326,7 @@ function __wbg_init_memory(imports, memory) {
 function __wbg_finalize_init(instance, module, thread_stack_size) {
     wasm = instance.exports;
     __wbg_init.__wbindgen_wasm_module = module;
+    cachedDataViewMemory0 = null;
     cachedUint8ArrayMemory0 = null;
 
 if (typeof thread_stack_size !== 'undefined' && (typeof thread_stack_size !== 'number' || thread_stack_size === 0 || thread_stack_size % 65536 !== 0)) { throw 'invalid stack size' }

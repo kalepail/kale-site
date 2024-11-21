@@ -2,13 +2,13 @@
 /* eslint-disable */
 /**
 * @param {number} thread_count
-* @param {bigint} runtime
+* @param {bigint} nonce_count
 * @param {number} index
 * @param {Uint8Array} entropy
 * @param {Uint8Array} farmer
-* @returns {Nonce | undefined}
+* @returns {Nonce}
 */
-export function mine(thread_count: number, runtime: bigint, index: number, entropy: Uint8Array, farmer: Uint8Array): Nonce | undefined;
+export function mine(thread_count: number, nonce_count: bigint, index: number, entropy: Uint8Array, farmer: Uint8Array): Nonce;
 /**
 * @param {number} num_threads
 * @returns {Promise<any>}
@@ -23,14 +23,16 @@ export function wbg_rayon_start_worker(receiver: number): void;
 export class Nonce {
   free(): void;
 /**
+* @param {bigint} max_nonce
+* @param {Uint8Array} local_hash
 */
-  local_nonce: bigint;
+  constructor(max_nonce: bigint, local_hash: Uint8Array);
 /**
 */
-  max_nonce: bigint;
+  readonly local_hash: Uint8Array;
 /**
 */
-  start_nonce: bigint;
+  readonly max_nonce: bigint;
 }
 /**
 */
@@ -53,12 +55,9 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly __wbg_nonce_free: (a: number, b: number) => void;
-  readonly __wbg_get_nonce_start_nonce: (a: number) => number;
-  readonly __wbg_set_nonce_start_nonce: (a: number, b: number) => void;
-  readonly __wbg_get_nonce_local_nonce: (a: number) => number;
-  readonly __wbg_set_nonce_local_nonce: (a: number, b: number) => void;
-  readonly __wbg_get_nonce_max_nonce: (a: number) => number;
-  readonly __wbg_set_nonce_max_nonce: (a: number, b: number) => void;
+  readonly nonce_new: (a: number, b: number, c: number) => number;
+  readonly nonce_max_nonce: (a: number) => number;
+  readonly nonce_local_hash: (a: number, b: number) => void;
   readonly mine: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
   readonly __wbg_wbg_rayon_poolbuilder_free: (a: number, b: number) => void;
   readonly wbg_rayon_poolbuilder_numThreads: (a: number) => number;
@@ -68,6 +67,8 @@ export interface InitOutput {
   readonly wbg_rayon_start_worker: (a: number) => void;
   readonly memory: WebAssembly.Memory;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
+  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+  readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __wbindgen_thread_destroy: (a?: number, b?: number, c?: number) => void;
   readonly __wbindgen_start: (a: number) => void;

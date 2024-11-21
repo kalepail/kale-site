@@ -4,8 +4,9 @@
 
     let thread_count = navigator.hardwareConcurrency;
     let time_output = "";
-    let runtime = 1;
+    let nonce_count = 100_000_000;
     let nonce = 0n;
+    let hash = "";
     let rendering = false;
 
     loadWasm();
@@ -52,23 +53,32 @@
                 const farmer = new Uint8Array(32);
                 const start = performance.now();
 
-                const { start_nonce, local_nonce } = mine(
+                const {
+                    max_nonce,
+                    local_hash
+                } = mine(
                     thread_count,
-                    BigInt(runtime),
+                    BigInt(nonce_count),
                     index,
                     entropy,
                     farmer,
                 )!;
 
                 const time = performance.now() - start;
-                const hashRate =
-                    Number((local_nonce - start_nonce) * BigInt(thread_count)) /
+                const hash_rate =
+                    nonce_count /
                     (time / 1e3) /
                     1e6;
 
-                time_output = `${runtime} runtime : ${time.toFixed(2)} ms : ${hashRate.toFixed(2)} MH/s`;
-                nonce = local_nonce;
                 rendering = false;
+                nonce = max_nonce;
+                hash = Array.from(local_hash)
+                    .map(byte => byte.toString(16).padStart(2, '0'))
+                    .join('');
+
+                const zeros = hash.match(/^0*/)[0].length;
+                
+                time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hash_rate.toFixed(2)} MH/s`;
             } finally {
                 rendering = false;
             }
@@ -92,11 +102,11 @@
     </div>
 
     <div class="mb-5">
-        <p>runtime: {runtime}</p>
+        <p>nonces: {nonce_count.toLocaleString()}</p>
         <label for="">
             1
-            <input type="range" min="1" max="60" bind:value={runtime} />
-            60
+            <input type="range" min="1" max="1000000000" bind:value={nonce_count} />
+            {(1000000000).toLocaleString()}
         </label>
     </div>
 
@@ -107,6 +117,7 @@
     >
 
     <pre><code>Nonce: {nonce}</code></pre>
+    <pre><code>Hash: {hash}</code></pre>
     <pre><code>{time_output}</code></pre>
 
     <p class="mt-10">
