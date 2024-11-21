@@ -4,7 +4,7 @@
 
     let thread_count = navigator.hardwareConcurrency;
     let time_output = "";
-    let nonce_count = 100_000_000;
+    let nonce_count = thread_count * 10_000_000;
     let nonce = 0n;
     let hash = "";
     let rendering = false;
