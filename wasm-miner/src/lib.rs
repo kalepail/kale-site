@@ -40,7 +40,6 @@ impl Nonce {
     }
 }
 
-
 impl HashMiner {
     fn new(
         thread_count: usize,
@@ -65,11 +64,20 @@ impl HashMiner {
     }
 
     fn check_zeros(&self, hash: &[u8]) -> bool {
-        let zeros = u128::from_be_bytes(hash[..16].try_into().unwrap()).leading_zeros();
+        let mut zeros = 0;
+
+        for byte in hash {
+            if *byte == 0 {
+                zeros += 8;
+            } else {
+                zeros += byte.leading_zeros();
+                break;
+            }    
+        }
 
         if zeros > self.max_zeros.load(Ordering::Relaxed) {
             self.max_zeros.store(zeros, Ordering::Relaxed);
-            return true;
+            return true
         }
 
         false
@@ -110,6 +118,9 @@ impl HashMiner {
         return Nonce { max_nonce, local_hash: local_hash.to_vec() };
     }
 }
+
+// TODO Add a kill switch to return the highest hash found to date
+// and then kill any remaining work
 
 #[wasm_bindgen]
 pub fn mine(

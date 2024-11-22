@@ -76,7 +76,7 @@
                     .map(byte => byte.toString(16).padStart(2, '0'))
                     .join('');
 
-                const zeros = hash.match(/^0*/)[0].length;
+                const zeros = hash.match(/^0*/)?.[0].length;
                 
                 time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hash_rate.toFixed(2)} MH/s`;
             } finally {
