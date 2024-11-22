@@ -76,8 +76,7 @@
                 href="https://stellar.expert/explorer/public/contract/{$contractId}"
                 target="_blank">{truncate($contractId)}</a
             >
-            |
-            {(Number($contractBalance ?? 0) / 1e7)?.toLocaleString()} KALE
+            <span class="bg-green-700 text-yellow-100 px-3 py-1 rounded-full font-mono text-sm">{(Number($contractBalance ?? 0) / 1e7)?.toLocaleString()} KALE</span>
             <button class="text-white bg-black p-2 ml-2" on:click={logout}
                 >Logout</button
             >
