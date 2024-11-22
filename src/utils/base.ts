@@ -5,6 +5,8 @@ export function truncate(str: string) {
 export function localStorageToMap() {
     const map: Map<number, [boolean, boolean]> = new Map();
 
+    // TODO rehydrate this on login from some 24 hr reverse lookup
+
     Object.keys(localStorage).sort().forEach((key) => {
         if (key.includes('kale:')) {
             let [, index, type] = key.split(':');
