@@ -13,11 +13,15 @@
     "@astrojs/check": "^0.9.4",
     "@astrojs/svelte": "^6.0.1",
     "@astrojs/tailwind": "^5.1.2",
+    "@stellar/stellar-sdk": "^13.0.0",
     "astro": "^4.16.13",
     "buffer": "^6.0.3",
+    "passkey-kit": "^0.10.1",
     "svelte": "^5.2.2",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3",
-    "wasm-feature-detect": "^1.8.0"
+    "wasm-feature-detect": "^1.8.0",
+    "kale-sc-sdk": "file:./kale-sc-sdk",
+    "@types/node": "^22.9.1"
   }
 }

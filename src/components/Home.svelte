@@ -1,50 +1,27 @@
 <script lang="ts">
-    import { threads } from "wasm-feature-detect";
-    import init, { initThreadPool, mine } from "../../wasm-miner/pkg";
+    import { mine } from "../../wasm-miner/pkg";
+    import { loadWasm } from "../utils/wasm-miner";
 
     let thread_count = navigator.hardwareConcurrency;
-    let time_output = "";
+    let time_output: string;
     let nonce_count = thread_count * 10_000_000;
-    let nonce = 0n;
-    let hash = "";
-    let rendering = false;
+    let nonce: bigint;
+    let hash: string;
+    let farming = false;
 
-    loadWasm();
+    // Load block data
+        // index
+        // block
 
-    // First up, but try to do feature detection to provide better error messages
-    async function loadWasm() {
-        if (!(await threads())) {
-            alert("this browser does not support multi threading");
-            return;
-        }
+    // plant
+    // mine a hash
+    // work
+    // harvest
 
-        if (typeof SharedArrayBuffer !== "function") {
-            alert(
-                "this browser does not have SharedArrayBuffer support enabled",
-            );
-            return;
-        }
+    loadWasm(thread_count);
 
-        // Test for bulk memory operations with passive data segments
-        // (module (memory 1) (data passive ""))
-        const buf = new Uint8Array([
-            0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x05, 0x03, 0x01,
-            0x00, 0x01, 0x0b, 0x03, 0x01, 0x01, 0x00,
-        ]);
-
-        if (!WebAssembly.validate(buf)) {
-            alert("this browser does not support passive Wasm memory");
-            return;
-        }
-
-        try {
-            await init();
-            await initThreadPool(thread_count);
-        } catch {}
-    }
-
-    async function render() {
-        rendering = true;
+    async function generateHash() {
+        farming = true;
 
         setTimeout(() => {
             try {
@@ -70,7 +47,7 @@
                     (time / 1e3) /
                     1e6;
 
-                rendering = false;
+                farming = false;
                 nonce = max_nonce;
                 hash = Array.from(local_hash)
                     .map(byte => byte.toString(16).padStart(2, '0'))
@@ -80,40 +57,17 @@
                 
                 time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hash_rate.toFixed(2)} MH/s`;
             } finally {
-                rendering = false;
+                farming = false;
             }
         }, 10);
     }
 </script>
 
 <div class="flex flex-col">
-    <div class="mb-5">
-        <p># of threads: {thread_count}</p>
-        <label for="">
-            1
-            <input
-                type="range"
-                min="1"
-                max={navigator.hardwareConcurrency}
-                bind:value={thread_count}
-            />
-            {navigator.hardwareConcurrency}
-        </label>
-    </div>
-
-    <div class="mb-5">
-        <p>nonces: {nonce_count.toLocaleString()}</p>
-        <label for="">
-            1
-            <input type="range" min="1" max="1000000000" bind:value={nonce_count} />
-            {(1000000000).toLocaleString()}
-        </label>
-    </div>
-
     <button
         class="bg-black text-white p-2 self-start mb-5 disabled:bg-gray-400"
-        on:click={render}
-        disabled={rendering}>Render{rendering ? "ing..." : ""}</button
+        on:click={generateHash}
+        disabled={farming}>Farm{farming ? "ing..." : ""}</button
     >
 
     <pre><code>Nonce: {nonce}</code></pre>
