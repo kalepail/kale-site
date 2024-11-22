@@ -64,8 +64,8 @@
     }
 </script>
 
-<header class="flex">
-    <h1 class="text-xl mb-2">
+<header class="flex mb-2">
+    <h1 class="text-xl">
         <a href="/"><strong>KALE</strong> 🥬</a>
     </h1>
 
