@@ -115,11 +115,17 @@
         working = true;
 
         try {
-            const { max_nonce, local_hash } = doWork(
-                index,
-                block.entropy,
-                Address.fromString($contractId).toBuffer(),
-            );
+            const { max_nonce, local_hash } = await new Promise<{ max_nonce: bigint, local_hash: Uint8Array }>((resolve) => {
+                setTimeout(() => {
+                    const work = doWork(
+                        index,
+                        block!.entropy!,
+                        Address.fromString($contractId).toBuffer(),
+                    );
+
+                    resolve(work);
+                }, 0);
+            });
 
             const at = await contract.work({
                 farmer: $contractId,
@@ -251,7 +257,7 @@
                         <button
                             class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
                             on:click={work}
-                            disabled={working || pails.get(block_index)?.[1]}>Work{working ? 'ing...' : ''}</button
+                            disabled={working || !pails.get(block_index)?.[0] || pails.get(block_index)?.[1]}>Work{working ? 'ing...' : ''}</button
                         >
                     {:else}{/if}
                 </td>
@@ -285,7 +291,7 @@
                         <button
                             class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
                             on:click={() => harvest(pail_index)}
-                            disabled={harvesting || pail_index === index}>Harvest{harvesting ? 'ing...' : ''}</button
+                            disabled={harvesting || pail_index === index}>{pail_index === index ? 'Waiting...' : `Harvest${harvesting ? 'ing...' : ''}`} </button
                         >
                     </td>
                 </tr>
