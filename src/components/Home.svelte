@@ -29,7 +29,7 @@
     let pails: Map<number, [boolean, boolean]> = new Map();
 
     let planting = false;
-    let farming = false;
+    let working = false;
     let harvesting = false;
 
     onMount(async () => {
@@ -112,7 +112,7 @@
     async function work() {
         if (!$contractId || !block?.entropy) return;
 
-        farming = true;
+        working = true;
 
         try {
             const { max_nonce, local_hash } = doWork(
@@ -145,7 +145,7 @@
             localStorage.setItem(`kale:${index}:work`, Date.now().toString());
             pails = localStorageToMap();
         } finally {
-            farming = false;
+            working = false;
         }
     }
 
@@ -206,7 +206,7 @@
             <th>Entropy</th>
             <th>Blocktime</th>
             <th>Plant</th>
-            <th>Farm</th>
+            <th>Work</th>
         </tr>
     </thead>
     <tbody>
@@ -251,7 +251,7 @@
                         <button
                             class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
                             on:click={work}
-                            disabled={farming || pails.get(block_index)?.[1]}>Farm{farming ? 'ing...' : ''}</button
+                            disabled={working || pails.get(block_index)?.[1]}>Work{working ? 'ing...' : ''}</button
                         >
                     {:else}{/if}
                 </td>
