@@ -216,9 +216,7 @@
         </tr>
     </thead>
     <tbody>
-        {#each blocks
-            .entries()
-            .toArray()
+        {#each Array.from(blocks)
             .sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i}
             <tr class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono">
                 <td>
@@ -274,9 +272,7 @@
         </tr>
     </thead>
     <tbody>
-        {#each pails
-            .entries()
-            .toArray()
+        {#each Array.from(pails)
             .sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [planted, worked]]}
             {#if worked}
                 <tr
