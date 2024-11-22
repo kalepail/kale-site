@@ -124,7 +124,7 @@
                     );
 
                     resolve(work);
-                }, 0);
+                }, 10);
             });
 
             const at = await contract.work({
