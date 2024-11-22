@@ -3,6 +3,8 @@
     import { keyId } from "../store/keyId";
     import { contractId } from "../store/contractId";
     import { account, server } from "../utils/passkey-kit";
+    import { truncate } from "../utils/base";
+    import { contractBalance } from "../store/contractBalance";
 
     onMount(async () => {
         if ($keyId) {
@@ -36,10 +38,6 @@
         contractId.set(cid);
     }
 
-    function truncate(str: string) {
-        return `${str.slice(0, 5)}...${str.slice(-5)}`;
-    }
-
     function logout() {
         keyId.set(null);
         contractId.set(null);
@@ -54,8 +52,10 @@
 
     <div class="ml-auto flex items-center">
         {#if $contractId}
-            <pre class="mr-2"><code>{truncate($contractId)}</code></pre>
-            <button class="text-white bg-black p-2" on:click={logout}>Logout</button>
+            <a class="mr-2 font-mono underline" href="https://stellar.expert/explorer/public/contract/{$contractId}" target="_blank">{truncate($contractId)}</a>
+            |
+            {(Number($contractBalance ?? 0) / 1e7)?.toLocaleString()} KALE
+            <button class="text-white bg-black p-2 ml-2" on:click={logout}>Logout</button>
         {:else}
             <button class="underline mr-2" on:click={login}>Login</button>
             <button

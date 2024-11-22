@@ -1,84 +1,295 @@
 <script lang="ts">
-    import { mine } from "../../wasm-miner/pkg";
-    import { loadWasm } from "../utils/wasm-miner";
+    import { onDestroy, onMount } from "svelte";
+    import {
+        contract,
+        getBlock,
+        getContractData,
+        getIndex,
+        type Block,
+        type Pail,
+    } from "../utils/kale";
+    import { doWork, loadWasm } from "../utils/wasm-miner";
+    import { contractId } from "../store/contractId";
+    import { localStorageToMap, truncate } from "../utils/base";
+    import { Address } from "@stellar/stellar-sdk";
+    import { Api } from "@stellar/stellar-sdk/rpc";
+    import { account, server } from "../utils/passkey-kit";
+    import { keyId } from "../store/keyId";
+    import { updateContractBalance } from "../store/contractBalance";
 
-    let thread_count = navigator.hardwareConcurrency;
-    let time_output: string;
-    let nonce_count = thread_count * 10_000_000;
-    let nonce: bigint;
-    let hash: string;
+    // TODO add automation with policy signer
+
+    let interval: NodeJS.Timeout;
+
+    let index: number;
+    let block: Block | undefined;
+    let pail: Pail | undefined;
+
+    let blocks: Map<number, Block | undefined> = new Map();
+    let pails: Map<number, [boolean, boolean]> = new Map();
+
+    let planting = false;
     let farming = false;
+    let harvesting = false;
 
-    // Load block data
-        // index
-        // block
+    onMount(async () => {
+        loadWasm();
+        pails = localStorageToMap();
+    });
 
-    // plant
-    // mine a hash
-    // work
-    // harvest
+    onDestroy(() => {
+        if (interval) clearInterval(interval);
+    });
 
-    loadWasm(thread_count);
+    contractId.subscribe(async (cid) => {
+        if (!cid) return;
 
-    async function generateHash() {
+        await updateContractBalance(cid);
+
+        const data = await getContractData(cid);
+
+        index = data.index;
+        block = data.block;
+        pail = data.pail;
+
+        blocks.set(index, block);
+        blocks = blocks;
+
+        if (interval) clearInterval(interval);
+
+        interval = setInterval(
+            () =>
+                getIndex().then(async (next_index) => {
+                    if (next_index > index) {
+                        index = next_index;
+                        block = await getBlock(index);
+                        blocks.set(index, block);
+                        blocks = blocks;
+                    } else {
+                        blocks = blocks;
+                    }
+                }),
+            5000,
+        );
+    });
+
+    async function plant() {
+        if (!$contractId) return;
+
+        planting = true;
+
+        try {
+            let at = await contract.plant({
+                farmer: $contractId,
+                amount: BigInt(0), // TODO make this configurable
+            });
+
+            if (Api.isSimulationError(at.simulation!)) {
+                if (at.simulation.error.includes("Error(Contract, #8)")) {
+                    // PailExists
+                    console.log("Already planted");
+                } else {
+                    console.error("Plant Error:", at.simulation.error);
+                    return;
+                }
+            } else {
+                // @ts-ignore
+                at = await account.sign(at, { keyId: $keyId });
+
+                // @ts-ignore
+                await server.send(at);
+
+                console.log("Successfully planted");
+            }
+
+            localStorage.setItem(`kale:${index}:plant`, Date.now().toString());
+            pails = localStorageToMap();
+        } finally {
+            planting = false;
+        }
+    }
+
+    async function work() {
+        if (!$contractId || !block?.entropy) return;
+
         farming = true;
 
-        setTimeout(() => {
-            try {
-                const index = Number(Math.random().toString().substring(2));
-                const entropy = new Uint8Array(32);
-                const farmer = new Uint8Array(32);
-                const start = performance.now();
+        try {
+            const { max_nonce, local_hash } = doWork(
+                index,
+                block.entropy,
+                Address.fromString($contractId).toBuffer(),
+            );
 
-                const {
-                    max_nonce,
-                    local_hash
-                } = mine(
-                    thread_count,
-                    BigInt(nonce_count),
-                    index,
-                    entropy,
-                    farmer,
-                )!;
+            const at = await contract.work({
+                farmer: $contractId,
+                hash: Buffer.from(local_hash),
+                nonce: max_nonce,
+            });
 
-                const time = performance.now() - start;
-                const hash_rate =
-                    nonce_count /
-                    (time / 1e3) /
-                    1e6;
+            if (Api.isSimulationError(at.simulation!)) {
+                if (at.simulation.error.includes("Error(Contract, #7)")) {
+                    // ZeroCountTooLow
+                    console.log("Already worked");
+                } else {
+                    console.error("Work Error:", at.simulation.error);
+                    return;
+                }
+            } else {
+                // @ts-ignore
+                await server.send(at);
 
-                farming = false;
-                nonce = max_nonce;
-                hash = Array.from(local_hash)
-                    .map(byte => byte.toString(16).padStart(2, '0'))
-                    .join('');
-
-                const zeros = hash.match(/^0*/)?.[0].length;
-                
-                time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hash_rate.toFixed(2)} MH/s`;
-            } finally {
-                farming = false;
+                console.log("Successfully worked");
             }
-        }, 10);
+
+            localStorage.setItem(`kale:${index}:work`, Date.now().toString());
+            pails = localStorageToMap();
+        } finally {
+            farming = false;
+        }
+    }
+
+    async function harvest(index: number) {
+        if (!$contractId) return;
+
+        harvesting = true;
+
+        try {
+            const at = await contract.harvest({
+                farmer: $contractId,
+                index,
+            });
+
+            if (Api.isSimulationError(at.simulation!)) {
+                if (
+                    !(
+                        (
+                            at.simulation.error.includes("Error(Contract, #9)") || // PailMissing
+                            at.simulation.error.includes("Error(Contract, #10)") || // WorkMissing
+                            at.simulation.error.includes("Error(Contract, #14)")
+                        ) // HarvestNotReady
+                    )
+                ) {
+                    console.error("Harvest Error:", at.simulation.error);
+                }
+            } else {
+                // @ts-ignore
+                await server.send(at);
+
+                localStorage.removeItem(`kale:${index}:plant`);
+                localStorage.removeItem(`kale:${index}:work`);
+                pails = localStorageToMap();
+
+                await updateContractBalance($contractId);
+
+                console.log("Successfully harvested");
+            }
+        } finally {
+            harvesting = false;
+        }
+    }
+
+    function countdown(timestamp: bigint) {
+        const now = Math.floor(Date.now() / 1000);
+        const diff = now - Number(timestamp);
+        const minutes = Math.floor(diff / 60);
+        const seconds = diff % 60;
+
+        return `${minutes}m ${seconds}s`;
     }
 </script>
 
-<div class="flex flex-col">
-    <button
-        class="bg-black text-white p-2 self-start mb-5 disabled:bg-gray-400"
-        on:click={generateHash}
-        disabled={farming}>Farm{farming ? "ing..." : ""}</button
-    >
+<table class="mb-5">
+    <thead>
+        <tr class="text-left [&>th]:px-2 [&>th]:border">
+            <th>Index</th>
+            <th>Entropy</th>
+            <th>Blocktime</th>
+            <th>Plant</th>
+            <th>Farm</th>
+        </tr>
+    </thead>
+    <tbody>
+        {#each blocks
+            .entries()
+            .toArray()
+            .sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i}
+            <tr class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono">
+                <td>
+                    <div class="flex items-center">
+                        {#if i === 0}
+                            <span class="text-xs mr-2">🔴</span>
+                        {/if}
+                        {block_index}
+                    </div>
+                </td>
+                <td>
+                    {#if block}
+                        {#if block.entropy}
+                            {truncate(block.entropy.toString("hex"))}
+                        {/if}
+                    {/if}
+                </td>
+                <td>
+                    {#if block}
+                        {#if block.timestamp}
+                            {countdown(block.timestamp)}
+                        {/if}
+                    {/if}
+                </td>
+                <td>
+                    {#if i === 0}
+                        <button
+                            class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                            on:click={plant}
+                            disabled={planting || pails.get(block_index)?.[0]}>Plant{planting ? 'ing...' : ''}</button
+                        >
+                    {:else}{/if}
+                </td>
+                <td>
+                    {#if i === 0}
+                        <button
+                            class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                            on:click={work}
+                            disabled={farming || pails.get(block_index)?.[1]}>Farm{farming ? 'ing...' : ''}</button
+                        >
+                    {:else}{/if}
+                </td>
+            </tr>
+        {/each}
+    </tbody>
+</table>
 
-    <pre><code>Nonce: {nonce}</code></pre>
-    <pre><code>Hash: {hash}</code></pre>
-    <pre><code>{time_output}</code></pre>
-
-    <p class="mt-10">
-        Learn more about <a
-            class="underline text-blue-600"
-            href="https://github.com/kalepail/KALE-sc"
-            target="_blank">The KALEpail Project</a
-        >
-    </p>
-</div>
+<table class="mb-5">
+    <thead>
+        <tr class="text-left [&>th]:px-2 [&>th]:border">
+            <th>Index</th>
+            <th>Harvest</th>
+        </tr>
+    </thead>
+    <tbody>
+        {#each pails
+            .entries()
+            .toArray()
+            .sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [planted, worked]]}
+            {#if worked}
+                <tr
+                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono"
+                >
+                    <td>
+                        <div class="flex items-center">
+                            {pail_index}
+                        </div>
+                    </td>
+                    <td>
+                        <button
+                            class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                            on:click={() => harvest(pail_index)}
+                            disabled={harvesting || pail_index === index}>Harvest{harvesting ? 'ing...' : ''}</button
+                        >
+                    </td>
+                </tr>
+            {/if}
+        {/each}
+    </tbody>
+</table>

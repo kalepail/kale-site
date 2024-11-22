@@ -1,5 +1,8 @@
 {
   "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
   "exclude": [
     "node_modules",
     "wasm-miner",

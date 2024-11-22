@@ -1,7 +1,10 @@
 import { threads } from "wasm-feature-detect";
-import init, { initThreadPool } from "../../wasm-miner/pkg";
+import init, { initThreadPool, mine } from "../../wasm-miner/pkg";
 
-export async function loadWasm(thread_count: number) {
+const thread_count = navigator.hardwareConcurrency;
+const nonce_count = thread_count * 10_000_000;
+
+export async function loadWasm() {
     // Do some feature detection to provide better error messages
     if (!(await threads())) {
         alert("this browser does not support multi threading");
@@ -31,4 +34,31 @@ export async function loadWasm(thread_count: number) {
         await init();
         await initThreadPool(thread_count);
     } catch { }
+}
+
+export function doWork(index: number, entropy: Uint8Array, farmer: Uint8Array) {
+    return mine(
+        thread_count,
+        BigInt(nonce_count),
+        index,
+        entropy,
+        farmer,
+    );
+
+    // const start = performance.now();
+
+    //// MINE HERE
+
+    // const time = performance.now() - start;
+    // const hash_rate = nonce_count / (time / 1e3) / 1e6;
+
+    // farming = false;
+    // nonce = max_nonce;
+    // hash = Array.from(local_hash)
+    //     .map((byte) => byte.toString(16).padStart(2, "0"))
+    //     .join("");
+
+    // const zeros = hash.match(/^0*/)?.[0].length;
+
+    // time_output = `${zeros} zeros : ${time.toFixed(2)} ms : ${hash_rate.toFixed(2)} MH/s`;
 }

@@ -1,5 +1,6 @@
 import { Address, scValToNative, xdr } from "@stellar/stellar-sdk";
 import { Durability, Server } from "@stellar/stellar-sdk/rpc";
+import { Client } from "kale-sc-sdk";
 
 export interface Block {
     timestamp?: bigint,
@@ -21,7 +22,13 @@ export interface Pail {
     zeros: bigint | undefined,
 }
 
-export const rpc = new Server(import.meta.env.RPC_URL);
+export const rpc = new Server(import.meta.env.PUBLIC_RPC_URL);
+
+export const contract = new Client({
+    rpcUrl: import.meta.env.PUBLIC_RPC_URL,
+    contractId: import.meta.env.PUBLIC_KALE_CONTRACT_ID,
+    networkPassphrase: import.meta.env.PUBLIC_NETWORK_PASSPHRASE,
+})
 
 export async function getIndex() {
     let index: number = 0;
