@@ -205,69 +205,71 @@
     }
 </script>
 
-<table class="mb-5">
-    <thead>
-        <tr class="text-left [&>th]:px-2 [&>th]:border">
-            <th>Index</th>
-            <th>Entropy</th>
-            <th>Blocktime</th>
-            <th>Plant</th>
-            <th>Work</th>
-        </tr>
-    </thead>
-    <tbody>
-        {#each Array.from(blocks)
-            .sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i}
-            <tr class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono">
-                <td>
-                    <div class="flex items-center">
-                        {#if i === 0}
-                            <span class="text-xs mr-2">🔴</span>
-                        {/if}
-                        {block_index}
-                    </div>
-                </td>
-                <td>
-                    {#if block}
-                        {#if block.entropy}
-                            {truncate(block.entropy.toString("hex"))}
-                        {/if}
-                    {/if}
-                </td>
-                <td>
-                    {#if block}
-                        {#if block.timestamp}
-                            {countdown(block.timestamp)}
-                        {/if}
-                    {/if}
-                </td>
-                <td>
-                    {#if i === 0}
-                        <button
-                            class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
-                            on:click={plant}
-                            disabled={planting || pails.get(block_index)?.[0]}>Plant{planting ? 'ing...' : ''}</button
-                        >
-                    {:else}{/if}
-                </td>
-                <td>
-                    {#if i === 0}
-                        <button
-                            class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
-                            on:click={work}
-                            disabled={working || !pails.get(block_index)?.[0] || pails.get(block_index)?.[1]}>Work{working ? 'ing...' : ''}</button
-                        >
-                    {:else}{/if}
-                </td>
+<div class="overflow-scroll">
+    <table class="mb-5">
+        <thead>
+            <tr class="text-left [&>th]:px-2 [&>th]:border">
+                <th>Block</th>
+                <th>Entropy</th>
+                <th>Blocktime</th>
+                <th>Plant</th>
+                <th>Work</th>
             </tr>
-        {/each}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {#each Array.from(blocks)
+                .sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i}
+                <tr class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono">
+                    <td>
+                        <div class="flex items-center">
+                            {#if i === 0}
+                                <span class="text-xs mr-2">🔴</span>
+                            {/if}
+                            {block_index}
+                        </div>
+                    </td>
+                    <td>
+                        {#if block}
+                            {#if block.entropy}
+                                {truncate(block.entropy.toString("hex"))}
+                            {/if}
+                        {/if}
+                    </td>
+                    <td>
+                        {#if block}
+                            {#if block.timestamp}
+                                {countdown(block.timestamp)}
+                            {/if}
+                        {/if}
+                    </td>
+                    <td>
+                        {#if i === 0}
+                            <button
+                                class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                                on:click={plant}
+                                disabled={planting || pails.get(block_index)?.[0]}>Plant{planting ? 'ing...' : ''}</button
+                            >
+                        {:else}{/if}
+                    </td>
+                    <td>
+                        {#if i === 0}
+                            <button
+                                class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                                on:click={work}
+                                disabled={working || !pails.get(block_index)?.[0] || pails.get(block_index)?.[1]}>Work{working ? 'ing...' : ''}</button
+                            >
+                        {:else}{/if}
+                    </td>
+                </tr>
+            {/each}
+        </tbody>
+    </table>
+</div>
 
 <table class="mb-5">
     <thead>
         <tr class="text-left [&>th]:px-2 [&>th]:border">
-            <th>Index</th>
+            <th>Block</th>
             <th>Harvest</th>
         </tr>
     </thead>

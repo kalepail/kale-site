@@ -64,8 +64,8 @@
     }
 </script>
 
-<header class="flex mb-2">
-    <h1 class="text-xl">
+<header class="flex flex-wrap mb-2">
+    <h1 class="flex items-center text-xl">
         <a href="/"><strong>KALE</strong> 🥬</a>
     </h1>
 
@@ -77,13 +77,13 @@
                 target="_blank">{truncate($contractId)}</a
             >
             <span class="bg-green-700 text-yellow-100 px-3 py-1 rounded-full font-mono text-sm">{(Number($contractBalance ?? 0) / 1e7)?.toLocaleString()} KALE</span>
-            <button class="text-white bg-black p-2 ml-2" on:click={logout}
+            <button class="text-white bg-black px-2 py-1 ml-2" on:click={logout}
                 >Logout</button
             >
         {:else}
             <button class="underline mr-2" on:click={login}>Login</button>
             <button
-                class="text-white bg-black p-2 disabled:bg-gray-400"
+                class="text-white bg-black px-2 py-1 disabled:bg-gray-400"
                 on:click={signUp}
                 disabled={creating}
                 >{creating ? "Creating..." : "Create New Account"}</button
