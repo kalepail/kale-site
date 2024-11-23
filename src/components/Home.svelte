@@ -231,7 +231,7 @@
                     <td>
                         {#if block}
                             {#if block.entropy}
-                                {truncate(block.entropy.toString("hex"))}
+                                {truncate(block.entropy.toString("hex"), 5)}
                             {/if}
                         {/if}
                     </td>

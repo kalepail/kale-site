@@ -1,5 +1,5 @@
-export function truncate(str: string) {
-    return `${str.slice(0, 5)}...${str.slice(-5)}`;
+export function truncate(str: string, length: number = 5) {
+    return `${str.slice(0, length)}...${str.slice(-length)}`;
 }
 
 export function localStorageToMap() {

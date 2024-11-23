@@ -72,11 +72,11 @@
     <div class="ml-auto flex items-center">
         {#if $contractId}
             <a
-                class="mr-2 font-mono underline"
+                class="mr-2 font-mono text-sm underline"
                 href="https://stellar.expert/explorer/public/contract/{$contractId}"
-                target="_blank">{truncate($contractId)}</a
+                target="_blank">{truncate($contractId, 4)}</a
             >
-            <span class="bg-green-700 text-yellow-100 px-3 py-1 rounded-full font-mono text-sm">{(Number($contractBalance ?? 0) / 1e7)?.toLocaleString()} KALE</span>
+            <span class="bg-green-700 text-yellow-100 px-3 py-1 rounded-full font-mono text-sm">{(Number($contractBalance ?? 0) / 1e7)} KALE</span>
             <button class="text-white bg-black px-2 py-1 ml-2" on:click={logout}
                 >Logout</button
             >
