@@ -1,9 +1,6 @@
 import { Buffer } from "buffer";
 import { AssembledTransaction, Client as ContractClient, type ClientOptions as ContractClientOptions } from '@stellar/stellar-sdk/contract';
 import type { u32, u64, i128, Option } from '@stellar/stellar-sdk/contract';
-export * from '@stellar/stellar-sdk';
-export * as contract from '@stellar/stellar-sdk/contract';
-export * as rpc from '@stellar/stellar-sdk/rpc';
 export declare const networks: {
     readonly unknown: {
         readonly networkPassphrase: "Public Global Stellar Network ; September 2015";
