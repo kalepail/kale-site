@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.svelte';
+import Leaderboard from '../components/Leaderboard.svelte';
+---
+
+<Layout title="KALE 🥬 / Leaderboard">
+	<main class="p-2 overflow-hidden">
+		<Header client:only="svelte" />
+		<Leaderboard client:only="svelte" />
+	</main>
+</Layout>

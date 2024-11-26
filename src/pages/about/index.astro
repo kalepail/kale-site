@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.svelte';
+import Prose from '../../components/Prose.astro';
+import { Content } from './index.md';
+---
+
+<Layout title="KALE 🥬 / About">
+    <main class="p-2">
+        <Header client:only="svelte" />
+        <Prose>
+            <Content />
+        </Prose>
+    </main>
+</Layout>

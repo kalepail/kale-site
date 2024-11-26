@@ -44,8 +44,6 @@
     contractId.subscribe(async (cid) => {
         if (!cid) return;
 
-        await updateContractBalance(cid);
-
         const data = await getContractData(cid);
 
         index = data.index;
@@ -231,7 +229,7 @@
                     <td>
                         {#if block}
                             {#if block.entropy}
-                                {truncate(block.entropy.toString("hex"), 5)}
+                                {truncate(block.entropy.toString("hex"))}
                             {/if}
                         {/if}
                     </td>

@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.svelte';
+import Chat from '../components/Chat.svelte';
+---
+
+<Layout title="KALE 🥬 / Chat">
+	<main class="p-2 overflow-hidden">
+		<Header client:only="svelte" />
+		<Chat client:only="svelte" />
+	</main>
+</Layout>

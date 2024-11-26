@@ -4,7 +4,7 @@
     import { contractId } from "../store/contractId";
     import { account, server } from "../utils/passkey-kit";
     import { truncate } from "../utils/base";
-    import { contractBalance } from "../store/contractBalance";
+    import { contractBalance, updateContractBalance } from "../store/contractBalance";
 
     let creating = false;
 
@@ -17,6 +17,11 @@
             contractId.set(cid);
         }
     });
+
+    contractId.subscribe(async (cid) => {
+        if (!cid) return;
+        await updateContractBalance(cid);
+    })
 
     async function login() {
         const { keyId_base64, contractId: cid } = await account.connectWallet();
@@ -67,6 +72,8 @@
 <header class="flex flex-wrap mb-2">
     <h1 class="flex items-center text-xl">
         <a href="/"><strong>KALE</strong> 🥬</a>
+        <!-- <span class="mx-2">/</span>
+        <a href="/chat">Chat</a> -->
     </h1>
 
     <div class="ml-auto flex items-center">
