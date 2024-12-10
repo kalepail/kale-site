@@ -100,7 +100,10 @@
                 console.log("Successfully planted");
             }
 
-            localStorage.setItem(`kale:${i ?? index}:plant`, Date.now().toString());
+            localStorage.setItem(
+                `kale:${i ?? index}:plant`,
+                Date.now().toString(),
+            );
             pails = localStorageToMap();
         } finally {
             planting = false;
@@ -222,8 +225,10 @@
             </tr>
         </thead>
         <tbody>
-            {#if block?.timestamp && BigInt(Math.floor(Date.now() / 1000) >= (block.timestamp + BigInt(60 * 5)))}
-                <tr class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono">
+            {#if block?.timestamp && BigInt(Math.floor(Date.now() / 1000) >= block.timestamp + BigInt(60 * 5))}
+                <tr
+                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono"
+                >
                     <td colspan="3"></td>
                     <td colspan="2">
                         <button
