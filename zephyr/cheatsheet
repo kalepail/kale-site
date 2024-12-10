@@ -1,0 +1,5 @@
+export JWT=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiZ29vZ2xlb2F1dGgyMTAwNzY1MTcwNTcxNDQ5NTIzNDgzIiwiZXhwIjoxNzM1MjQ1NTQwLCJ1c2VyX2lkIjoxOCwidXNlcm5hbWUiOiJ0eWxlckBzdGVsbGFyLm9yZyIsImlhdCI6MTczMjY1MzU3NiwiYXVkIjoicG9zdGdyYXBoaWxlIiwiaXNzIjoicG9zdGdyYXBoaWxlIn0.l2rQBN_sMoGSf1_4RjSYUnFZNFAwqXmnl5JGtHpYUZ0
+mercury-cli --jwt $JWT --local false --mainnet true deploy
+mercury-cli --jwt $JWT --local false --mainnet true catchup --project-name "kale-addresses" --contracts CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV
+curl -X GET https://api.mercurydata.app/catchups/4
+curl -X POST https://api.mercurydata.app/v2/key -H "Authorization: Bearer $JWT"

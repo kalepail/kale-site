@@ -1,0 +1,14 @@
+name = "kale-addresses"
+
+[[tables]]
+name = "balances"
+force = false
+
+[[tables.columns]]
+name = "address"
+col_type = "BYTEA"
+index = true
+
+[[tables.columns]]
+name = "balance"
+col_type = "BIGINT"
