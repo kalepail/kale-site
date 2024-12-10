@@ -71,7 +71,7 @@
         );
     });
 
-    async function plant() {
+    async function plant(i?: number) {
         if (!$contractId) return;
 
         planting = true;
@@ -100,7 +100,7 @@
                 console.log("Successfully planted");
             }
 
-            localStorage.setItem(`kale:${index}:plant`, Date.now().toString());
+            localStorage.setItem(`kale:${i ?? index}:plant`, Date.now().toString());
             pails = localStorageToMap();
         } finally {
             planting = false;
@@ -113,7 +113,10 @@
         working = true;
 
         try {
-            const { max_nonce, local_hash } = await new Promise<{ max_nonce: bigint, local_hash: Uint8Array }>((resolve) => {
+            const { max_nonce, local_hash } = await new Promise<{
+                max_nonce: bigint;
+                local_hash: Uint8Array;
+            }>((resolve) => {
                 setTimeout(() => {
                     const work = doWork(
                         index,
@@ -168,8 +171,12 @@
                 if (
                     !(
                         (
-                            at.simulation.error.includes("Error(Contract, #9)") || // PailMissing
-                            at.simulation.error.includes("Error(Contract, #10)") || // WorkMissing
+                            at.simulation.error.includes(
+                                "Error(Contract, #9)",
+                            ) || // PailMissing
+                            at.simulation.error.includes(
+                                "Error(Contract, #10)",
+                            ) || // WorkMissing
                             at.simulation.error.includes("Error(Contract, #14)")
                         ) // HarvestNotReady
                     )
@@ -215,9 +222,24 @@
             </tr>
         </thead>
         <tbody>
-            {#each Array.from(blocks)
-                .sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i}
+            {#if block?.timestamp && BigInt(Math.floor(Date.now() / 1000) >= (block.timestamp + BigInt(60 * 5)))}
                 <tr class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono">
+                    <td colspan="3"></td>
+                    <td colspan="2">
+                        <button
+                            class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                            on:click={() => plant(index + 1)}
+                            disabled={planting}
+                            >Plant{planting ? "ing..." : ""}</button
+                        >
+                    </td>
+                </tr>
+            {/if}
+
+            {#each Array.from(blocks).sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i}
+                <tr
+                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono"
+                >
                     <td>
                         <div class="flex items-center">
                             {#if i === 0}
@@ -244,8 +266,10 @@
                         {#if i === 0}
                             <button
                                 class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
-                                on:click={plant}
-                                disabled={planting || pails.get(block_index)?.[0]}>Plant{planting ? 'ing...' : ''}</button
+                                on:click={() => plant()}
+                                disabled={planting ||
+                                    pails.get(block_index)?.[0]}
+                                >Plant{planting ? "ing..." : ""}</button
                             >
                         {:else}{/if}
                     </td>
@@ -254,7 +278,10 @@
                             <button
                                 class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
                                 on:click={work}
-                                disabled={working || !pails.get(block_index)?.[0] || pails.get(block_index)?.[1]}>Work{working ? 'ing...' : ''}</button
+                                disabled={working ||
+                                    !pails.get(block_index)?.[0] ||
+                                    pails.get(block_index)?.[1]}
+                                >Work{working ? "ing..." : ""}</button
                             >
                         {:else}{/if}
                     </td>
@@ -272,8 +299,7 @@
         </tr>
     </thead>
     <tbody>
-        {#each Array.from(pails)
-            .sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [planted, worked]]}
+        {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [planted, worked]]}
             {#if worked}
                 <tr
                     class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono"
@@ -287,8 +313,11 @@
                         <button
                             class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
                             on:click={() => harvest(pail_index)}
-                            disabled={harvesting || pail_index === index}>{pail_index === index ? 'Waiting...' : `Harvest${harvesting ? 'ing...' : ''}`} </button
-                        >
+                            disabled={harvesting || pail_index === index}
+                            >{pail_index === index
+                                ? "Waiting..."
+                                : `Harvest${harvesting ? "ing..." : ""}`}
+                        </button>
                     </td>
                 </tr>
             {/if}
