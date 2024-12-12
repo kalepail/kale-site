@@ -263,10 +263,12 @@
     }
 </script>
 
+{#if $contractId}
 <label class="inline-block mb-2">
     <input type="checkbox" name="automate" id="automate" bind:checked={automated} on:change={(e) => automate(e)}>
     Automat{automating ? 'ing...' : automated ? 'ed' : 'e'}
 </label>
+{/if}
 
 <div class="overflow-scroll">
     <table class="mb-5">
