@@ -5,17 +5,19 @@
         getBlock,
         getContractData,
         getIndex,
+        rpc,
         type Block,
         type Pail,
     } from "../utils/kale";
     import { doWork, loadWasm } from "../utils/wasm-miner";
     import { contractId } from "../store/contractId";
     import { localStorageToMap, truncate } from "../utils/base";
-    import { Address } from "@stellar/stellar-sdk";
+    import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
     import { account, server } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
     import { updateContractBalance } from "../store/contractBalance";
+    import { SignerStore, type SignerLimits } from "passkey-kit";
 
     // TODO add automation with policy signer
 
@@ -28,6 +30,8 @@
     let blocks: Map<number, Block | undefined> = new Map();
     let pails: Map<number, [boolean, boolean]> = new Map();
 
+    let automated = false;
+    let automating = false;
     let planting = false;
     let working = false;
     let harvesting = false;
@@ -56,22 +60,39 @@
         if (interval) clearInterval(interval);
 
         interval = setInterval(
-            () =>
-                getIndex().then(async (next_index) => {
-                    if (next_index > index) {
-                        index = next_index;
-                        block = await getBlock(index);
-                        blocks.set(index, block);
-                        blocks = blocks;
-                    } else {
-                        blocks = blocks;
+            () => getIndex().then(async (next_index) => {
+                if (next_index > index) {
+                    index = next_index;
+                    block = await getBlock(index);
+                    blocks.set(index, block);
+                    blocks = blocks;
+                } else {
+                    blocks = blocks;
+                }
+
+                const secret = sessionStorage.getItem(`kale:secret`);
+
+                if (secret && !automating && automated) {
+                    let [planted, worked] = pails.get(next_index) ?? [false, false];
+
+                    if (!planted || !worked) {
+                        try {
+                            automating = true
+
+                            await harvest(index - 1)
+                            await plant(index, Keypair.fromSecret(secret))
+                            await work()
+                        } finally {
+                            automating = false
+                        }
                     }
-                }),
+                }
+            }),
             5000,
         );
     });
 
-    async function plant(i?: number) {
+    async function plant(i?: number, keypair?: Keypair) {
         if (!$contractId) return;
 
         planting = true;
@@ -92,7 +113,7 @@
                 }
             } else {
                 // @ts-ignore
-                at = await account.sign(at, { keyId: $keyId });
+                at = await account.sign(at, keypair ? { keypair } : { keyId: $keyId });
 
                 // @ts-ignore
                 await server.send(at);
@@ -203,6 +224,35 @@
         }
     }
 
+    async function automate(e: Event & { currentTarget: EventTarget & HTMLInputElement; }) {
+        const secret = sessionStorage.getItem(`kale:secret`)
+
+        automated = e.currentTarget.checked
+
+        if ($keyId && automated && !secret) {
+            try {
+                automating = true
+
+                const keypair = Keypair.random();
+                const secret = keypair.secret();
+                const pubkey = keypair.publicKey();
+
+                const limits: SignerLimits = new Map([[import.meta.env.PUBLIC_KALE_CONTRACT_ID, []]])
+
+                const { sequence } = await rpc.getLatestLedger()
+                const at = await account.addEd25519(pubkey, limits, SignerStore.Temporary, sequence + 17280)
+
+                await account.sign(at, { keyId: $keyId })
+
+                await server.send(at)
+
+                sessionStorage.setItem(`kale:secret`, secret)
+            } finally {
+                automating = false
+            }
+        }
+    }
+
     function countdown(timestamp: bigint) {
         const now = Math.floor(Date.now() / 1000);
         const diff = now - Number(timestamp);
@@ -212,6 +262,11 @@
         return `${minutes}m ${seconds}s`;
     }
 </script>
+
+<label class="inline-block mb-2">
+    <input type="checkbox" name="automate" id="automate" bind:checked={automated} on:change={(e) => automate(e)}>
+    Automat{automated ? 'ed' : automating ? 'ing...' : 'e'}
+</label>
 
 <div class="overflow-scroll">
     <table class="mb-5">
