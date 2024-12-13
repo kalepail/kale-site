@@ -37,6 +37,9 @@
     let harvesting = false;
     let transferring = false;
 
+    let send_address: string;
+    let send_amount: string;
+
     onMount(async () => {
         loadWasm();
         pails = localStorageToMap();
@@ -279,9 +282,7 @@
         }
     }
 
-    async function transfer(
-        e: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement; },
-    ) {
+    async function transfer() {
         if (!$contractId || !$keyId) return;
 
         try {
@@ -289,13 +290,17 @@
 
             const at = await kale.transfer({
                 from: $contractId,
-                to: e.currentTarget.address.value,
-                amount: BigInt(Math.floor(Number(e.currentTarget.amount.value) * 1e7)),
+                to: send_address,
+                amount: BigInt(Math.floor(Number(send_amount) * 1e7)),
             })
 
             await account.sign(at, { keyId: $keyId })
 
             await server.send(at)
+
+            await updateContractBalance($contractId);
+
+            send_amount = ''
         } finally {
             transferring = false
         }
@@ -450,7 +455,7 @@
             name="address"
             id="address"
             placeholder="Address to send the KALE to"
-            value=""
+            bind:value={send_address}
         />
         <input
             class="mr-2 my-2 font-mono text-sm px-2 py-1 max-w-[180px]"
@@ -458,7 +463,7 @@
             name="amount"
             id="amount"
             placeholder="Amount to send"
-            value=""
+            bind:value={send_amount}
         />
         <button
             class="bg-black text-white px-2 py-1 text-sm font-mono disabled:bg-gray-400"
