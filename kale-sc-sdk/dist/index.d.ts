@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { AssembledTransaction, Client as ContractClient, ClientOptions as ContractClientOptions } from '@stellar/stellar-sdk/contract';
+import { AssembledTransaction, Client as ContractClient, type ClientOptions as ContractClientOptions } from '@stellar/stellar-sdk/contract';
 import type { u32, u64, i128, Option } from '@stellar/stellar-sdk/contract';
 export declare const networks: {
     readonly unknown: {

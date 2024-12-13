@@ -60,34 +60,46 @@
         if (interval) clearInterval(interval);
 
         interval = setInterval(
-            () => getIndex().then(async (next_index) => {
-                if (next_index > index) {
-                    index = next_index;
-                    block = await getBlock(index);
-                    blocks.set(index, block);
-                    blocks = blocks;
-                } else {
-                    blocks = blocks;
-                }
+            () =>
+                getIndex().then(async (next_index) => {
+                    if (next_index > index) {
+                        index = next_index;
+                        block = await getBlock(index);
+                        blocks.set(index, block);
+                        blocks = blocks;
+                    } else {
+                        blocks = blocks;
+                    }
 
-                const secret = sessionStorage.getItem(`kale:secret`);
+                    const secret = sessionStorage.getItem(`kale:secret`);
 
-                if (secret && !automating && automated) {
-                    let [planted, worked] = pails.get(next_index) ?? [false, false];
+                    if (secret && !automating && automated) {
+                        await harvest(index - 1);
 
-                    if (!planted || !worked) {
+                        let [planted, worked] = pails.get(next_index) ?? [
+                            false,
+                            false,
+                        ];
+
                         try {
-                            automating = true
+                            automating = true;
 
-                            await harvest(index - 1)
-                            await plant(index, Keypair.fromSecret(secret))
-                            await work()
+                            if (!planted) {
+                                await plant(index, Keypair.fromSecret(secret));
+                            }
+
+                            const now = Math.floor(Date.now() / 1000);
+                            const diff = now - Number(block?.timestamp);
+
+                            // wait 4 minutes after block open to work
+                            if (!worked && diff >= 240) {
+                                await work();
+                            }
                         } finally {
-                            automating = false
+                            automating = false;
                         }
                     }
-                }
-            }),
+                }),
             5000,
         );
     });
@@ -113,7 +125,11 @@
                 }
             } else {
                 // @ts-ignore
-                at = await account.sign(at, keypair ? { keypair } : { keyId: $keyId });
+                at = await account.sign(
+                    // @ts-ignore
+                    at,
+                    keypair ? { keypair } : { keyId: $keyId },
+                );
 
                 // @ts-ignore
                 await server.send(at);
@@ -224,31 +240,40 @@
         }
     }
 
-    async function automate(e: Event & { currentTarget: EventTarget & HTMLInputElement; }) {
-        const secret = sessionStorage.getItem(`kale:secret`)
+    async function automate(
+        e: Event & { currentTarget: EventTarget & HTMLInputElement },
+    ) {
+        const secret = sessionStorage.getItem(`kale:secret`);
 
-        automated = e.currentTarget.checked
+        automated = e.currentTarget.checked;
 
         if ($keyId && automated && !secret) {
             try {
-                automating = true
+                automating = true;
 
                 const keypair = Keypair.random();
                 const secret = keypair.secret();
                 const pubkey = keypair.publicKey();
 
-                const limits: SignerLimits = new Map([[import.meta.env.PUBLIC_KALE_CONTRACT_ID, []]])
+                const limits: SignerLimits = new Map([
+                    [import.meta.env.PUBLIC_KALE_CONTRACT_ID, []],
+                ]);
 
-                const { sequence } = await rpc.getLatestLedger()
-                const at = await account.addEd25519(pubkey, limits, SignerStore.Temporary, sequence + 17280)
+                const { sequence } = await rpc.getLatestLedger();
+                const at = await account.addEd25519(
+                    pubkey,
+                    limits,
+                    SignerStore.Temporary,
+                    sequence + 17280,
+                );
 
-                await account.sign(at, { keyId: $keyId })
+                await account.sign(at, { keyId: $keyId });
 
-                await server.send(at)
+                await server.send(at);
 
-                sessionStorage.setItem(`kale:secret`, secret)
+                sessionStorage.setItem(`kale:secret`, secret);
             } finally {
-                automating = false
+                automating = false;
             }
         }
     }
@@ -264,10 +289,16 @@
 </script>
 
 {#if $contractId}
-<label class="inline-block mb-2">
-    <input type="checkbox" name="automate" id="automate" bind:checked={automated} on:change={(e) => automate(e)}>
-    Automat{automating ? 'ing...' : automated ? 'ed' : 'e'}
-</label>
+    <label class="inline-block mb-2">
+        <input
+            type="checkbox"
+            name="automate"
+            id="automate"
+            bind:checked={automated}
+            on:change={(e) => automate(e)}
+        />
+        Automat{automating ? "ing..." : automated ? "ed" : "e"}
+    </label>
 {/if}
 
 <div class="overflow-scroll">
