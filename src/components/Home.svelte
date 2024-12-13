@@ -14,7 +14,7 @@
     import { localStorageToMap, truncate } from "../utils/base";
     import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
-    import { account, server } from "../utils/passkey-kit";
+    import { account, kale, server } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
     import { updateContractBalance } from "../store/contractBalance";
     import { SignerStore, type SignerLimits } from "passkey-kit";
@@ -35,6 +35,7 @@
     let planting = false;
     let working = false;
     let harvesting = false;
+    let transferring = false;
 
     onMount(async () => {
         loadWasm();
@@ -278,6 +279,28 @@
         }
     }
 
+    async function transfer(
+        e: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement; },
+    ) {
+        if (!$contractId || !$keyId) return;
+
+        try {
+            transferring = true
+
+            const at = await kale.transfer({
+                from: $contractId,
+                to: e.currentTarget.address.value,
+                amount: BigInt(Math.floor(Number(e.currentTarget.amount.value) * 1e7)),
+            })
+
+            await account.sign(at, { keyId: $keyId })
+
+            await server.send(at)
+        } finally {
+            transferring = false
+        }
+    }
+
     function countdown(timestamp: bigint) {
         const now = Math.floor(Date.now() / 1000);
         const diff = now - Number(timestamp);
@@ -417,6 +440,34 @@
         {/each}
     </tbody>
 </table>
+
+{#if $contractId}
+    <form class="bg-gray-200 p-2 rounded flex flex-wrap items-center" on:submit|preventDefault={transfer}>
+        <span class="w-full">Transfer KALE</span>
+        <input
+            class="mr-2 my-2 font-mono text-sm px-2 py-1 min-w-[300px]"
+            type="text"
+            name="address"
+            id="address"
+            placeholder="Address to send the KALE to"
+            value=""
+        />
+        <input
+            class="mr-2 my-2 font-mono text-sm px-2 py-1 max-w-[180px]"
+            type="text"
+            name="amount"
+            id="amount"
+            placeholder="Amount to send"
+            value=""
+        />
+        <button
+            class="bg-black text-white px-2 py-1 text-sm font-mono disabled:bg-gray-400"
+            type="submit"
+            disabled={transferring}
+            >Send{transferring ? 'ing...' : ''}</button
+        >
+    </form>
+{/if}
 
 <p class="mt-10">
     Learn more about <a
