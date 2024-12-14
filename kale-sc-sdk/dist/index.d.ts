@@ -14,9 +14,6 @@ export declare const Errors: {
     2: {
         message: string;
     };
-    3: {
-        message: string;
-    };
     4: {
         message: string;
     };
@@ -154,26 +151,6 @@ export interface Client {
         simulate?: boolean;
     }) => Promise<AssembledTransaction<i128>>;
     /**
-     * Construct and simulate a homestead transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
-     */
-    homestead: ({ farmer, asset }: {
-        farmer: string;
-        asset: string;
-    }, options?: {
-        /**
-         * The fee to pay for the transaction. Default: BASE_FEE
-         */
-        fee?: number;
-        /**
-         * The maximum amount of time to wait for the transaction to complete. Default: DEFAULT_TIMEOUT
-         */
-        timeoutInSeconds?: number;
-        /**
-         * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
-         */
-        simulate?: boolean;
-    }) => Promise<AssembledTransaction<null>>;
-    /**
      * Construct and simulate a upgrade transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
      */
     upgrade: ({ hash }: {
@@ -253,7 +230,6 @@ export declare class Client extends ContractClient {
         plant: (json: string) => AssembledTransaction<null>;
         work: (json: string) => AssembledTransaction<number>;
         harvest: (json: string) => AssembledTransaction<bigint>;
-        homestead: (json: string) => AssembledTransaction<null>;
         upgrade: (json: string) => AssembledTransaction<null>;
         pause: (json: string) => AssembledTransaction<null>;
         unpause: (json: string) => AssembledTransaction<null>;

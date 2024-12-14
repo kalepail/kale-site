@@ -5,17 +5,19 @@
         getBlock,
         getContractData,
         getIndex,
+        rpc,
         type Block,
         type Pail,
     } from "../utils/kale";
     import { doWork, loadWasm } from "../utils/wasm-miner";
     import { contractId } from "../store/contractId";
     import { localStorageToMap, truncate } from "../utils/base";
-    import { Address } from "@stellar/stellar-sdk";
+    import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
-    import { account, server } from "../utils/passkey-kit";
+    import { account, kale, server } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
     import { updateContractBalance } from "../store/contractBalance";
+    import { SignerStore, type SignerLimits } from "passkey-kit";
 
     // TODO add automation with policy signer
 
@@ -28,9 +30,15 @@
     let blocks: Map<number, Block | undefined> = new Map();
     let pails: Map<number, [boolean, boolean]> = new Map();
 
+    let automated = false;
+    let automating = false;
     let planting = false;
     let working = false;
     let harvesting = false;
+    let transferring = false;
+
+    let send_address: string;
+    let send_amount: string;
 
     onMount(async () => {
         loadWasm();
@@ -66,12 +74,41 @@
                     } else {
                         blocks = blocks;
                     }
+
+                    const secret = sessionStorage.getItem(`kale:secret`);
+
+                    if (secret && !automating && automated) {
+                        await harvest(index - 1);
+
+                        let [planted, worked] = pails.get(next_index) ?? [
+                            false,
+                            false,
+                        ];
+
+                        try {
+                            automating = true;
+
+                            if (!planted) {
+                                await plant(index, Keypair.fromSecret(secret));
+                            }
+
+                            const now = Math.floor(Date.now() / 1000);
+                            const diff = now - Number(block?.timestamp);
+
+                            // wait 4 minutes after block open to work
+                            if (!worked && diff >= 240) {
+                                await work();
+                            }
+                        } finally {
+                            automating = false;
+                        }
+                    }
                 }),
             5000,
         );
     });
 
-    async function plant(i?: number) {
+    async function plant(i?: number, keypair?: Keypair) {
         if (!$contractId) return;
 
         planting = true;
@@ -92,7 +129,11 @@
                 }
             } else {
                 // @ts-ignore
-                at = await account.sign(at, { keyId: $keyId });
+                at = await account.sign(
+                    // @ts-ignore
+                    at,
+                    keypair ? { keypair } : { keyId: $keyId },
+                );
 
                 // @ts-ignore
                 await server.send(at);
@@ -100,7 +141,10 @@
                 console.log("Successfully planted");
             }
 
-            localStorage.setItem(`kale:${i ?? index}:plant`, Date.now().toString());
+            localStorage.setItem(
+                `kale:${i ?? index}:plant`,
+                Date.now().toString(),
+            );
             pails = localStorageToMap();
         } finally {
             planting = false;
@@ -200,6 +244,68 @@
         }
     }
 
+    async function automate(
+        e: Event & { currentTarget: EventTarget & HTMLInputElement },
+    ) {
+        const secret = sessionStorage.getItem(`kale:secret`);
+
+        automated = e.currentTarget.checked;
+
+        if ($keyId && automated && !secret) {
+            try {
+                automating = true;
+
+                const keypair = Keypair.random();
+                const secret = keypair.secret();
+                const pubkey = keypair.publicKey();
+
+                const limits: SignerLimits = new Map([
+                    [import.meta.env.PUBLIC_KALE_CONTRACT_ID, []],
+                ]);
+
+                const { sequence } = await rpc.getLatestLedger();
+                const at = await account.addEd25519(
+                    pubkey,
+                    limits,
+                    SignerStore.Temporary,
+                    sequence + 17280,
+                );
+
+                await account.sign(at, { keyId: $keyId });
+
+                await server.send(at);
+
+                sessionStorage.setItem(`kale:secret`, secret);
+            } finally {
+                automating = false;
+            }
+        }
+    }
+
+    async function transfer() {
+        if (!$contractId || !$keyId) return;
+
+        try {
+            transferring = true
+
+            const at = await kale.transfer({
+                from: $contractId,
+                to: send_address,
+                amount: BigInt(Math.floor(Number(send_amount) * 1e7)),
+            })
+
+            await account.sign(at, { keyId: $keyId })
+
+            await server.send(at)
+
+            await updateContractBalance($contractId);
+
+            send_amount = ''
+        } finally {
+            transferring = false
+        }
+    }
+
     function countdown(timestamp: bigint) {
         const now = Math.floor(Date.now() / 1000);
         const diff = now - Number(timestamp);
@@ -209,6 +315,19 @@
         return `${minutes}m ${seconds}s`;
     }
 </script>
+
+{#if $contractId}
+    <label class="inline-block mb-2">
+        <input
+            type="checkbox"
+            name="automate"
+            id="automate"
+            bind:checked={automated}
+            on:change={(e) => automate(e)}
+        />
+        Automat{automating ? "ing..." : automated ? "ed" : "e"}
+    </label>
+{/if}
 
 <div class="overflow-scroll">
     <table class="mb-5">
@@ -222,8 +341,10 @@
             </tr>
         </thead>
         <tbody>
-            {#if block?.timestamp && BigInt(Math.floor(Date.now() / 1000) >= (block.timestamp + BigInt(60 * 5)))}
-                <tr class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono">
+            {#if block?.timestamp && BigInt(Math.floor(Date.now() / 1000) >= block.timestamp + BigInt(60 * 5))}
+                <tr
+                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono"
+                >
                     <td colspan="3"></td>
                     <td colspan="2">
                         <button
@@ -324,6 +445,34 @@
         {/each}
     </tbody>
 </table>
+
+{#if $contractId}
+    <form class="bg-gray-200 p-2 rounded flex flex-wrap items-center" on:submit|preventDefault={transfer}>
+        <span class="w-full">Transfer KALE</span>
+        <input
+            class="mr-2 my-2 font-mono text-sm px-2 py-1 min-w-[300px]"
+            type="text"
+            name="address"
+            id="address"
+            placeholder="Address to send the KALE to"
+            bind:value={send_address}
+        />
+        <input
+            class="mr-2 my-2 font-mono text-sm px-2 py-1 max-w-[180px]"
+            type="text"
+            name="amount"
+            id="amount"
+            placeholder="Amount to send"
+            bind:value={send_amount}
+        />
+        <button
+            class="bg-black text-white px-2 py-1 text-sm font-mono disabled:bg-gray-400"
+            type="submit"
+            disabled={transferring}
+            >Send{transferring ? 'ing...' : ''}</button
+        >
+    </form>
+{/if}
 
 <p class="mt-10">
     Learn more about <a

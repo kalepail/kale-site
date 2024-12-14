@@ -8,5 +8,6 @@
     "wasm-miner",
     "dist",
     "contracts",
+    "zephyr",
   ]
 }

@@ -59,13 +59,20 @@
     function logout() {
         keyId.set(null);
         contractId.set(null);
-        localStorage.removeItem("kale:keyId");
 
         Object.keys(localStorage).forEach((key) => {
             if (key.includes("kale:")) {
                 localStorage.removeItem(key);
             }
         });
+
+        Object.keys(sessionStorage).forEach((key) => {
+            if (key.includes("kale:")) {
+                sessionStorage.removeItem(key);
+            }
+        });
+
+        location.reload();
     }
 </script>
 
