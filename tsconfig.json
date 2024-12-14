@@ -4,10 +4,12 @@
     "skipLibCheck": true
   },
   "exclude": [
+    ".astro",
+    "contracts",
+    "dist",
+    "kale-sc-sdk",
     "node_modules",
     "wasm-miner",
-    "dist",
-    "contracts",
     "zephyr",
   ]
 }
