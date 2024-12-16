@@ -16,7 +16,7 @@ importers:
         version: 0.9.4(typescript@5.7.2)
       '@astrojs/svelte':
         specifier: ^6.0.2
-        version: 6.0.2(@types/node@22.10.2)(astro@4.16.17(@types/node@22.10.2)(rollup@4.28.1)(typescript@5.7.2))(svelte@5.11.3)(typescript@5.7.2)
+        version: 6.0.2(@types/node@22.10.2)(astro@4.16.17(@types/node@22.10.2)(rollup@4.28.1)(typescript@5.7.2))(svelte@5.14.0)(typescript@5.7.2)
       '@astrojs/tailwind':
         specifier: ^5.1.3
         version: 5.1.3(astro@4.16.17(@types/node@22.10.2)(rollup@4.28.1)(typescript@5.7.2))(tailwindcss@3.4.16)
@@ -32,15 +32,18 @@ importers:
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
+      kale-chat-sdk:
+        specifier: file:./kale-chat-sdk
+        version: file:kale-chat-sdk
       kale-sc-sdk:
         specifier: file:./kale-sc-sdk
         version: file:kale-sc-sdk
       passkey-kit:
-        specifier: '=0.10.4'
+        specifier: ^0.10.4
         version: 0.10.4
       svelte:
-        specifier: ^5.11.3
-        version: 5.11.3
+        specifier: ^5.14.0
+        version: 5.14.0
       tailwindcss:
         specifier: ^3.4.16
         version: 3.4.16
@@ -1344,6 +1347,9 @@ packages:
   jsonc-parser@3.3.1:
     resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
 
+  kale-chat-sdk@file:kale-chat-sdk:
+    resolution: {directory: kale-chat-sdk, type: directory}
+
   kale-sc-sdk@file:kale-sc-sdk:
     resolution: {directory: kale-sc-sdk, type: directory}
 
@@ -1996,8 +2002,8 @@ packages:
       svelte: ^3.55 || ^4.0.0-next.0 || ^4.0 || ^5.0.0-next.0
       typescript: ^4.9.4 || ^5.0.0
 
-  svelte@5.11.3:
-    resolution: {integrity: sha512-yyOB+kc8mP6T6F10wGXcO3nSzGowD6dCOeo9jHEkF01dxQyQKh1KO6yrH3rJzwAdEVX/OSV3MRUwcbWDtHI2ww==}
+  svelte@5.14.0:
+    resolution: {integrity: sha512-xHrS9dd2Ci9GJd2sReNFqJztoe515wB4OzsPw4A8L2M6lddLFkREkWDJnM5DAND30Zyvjwc1icQVzH0F+Sdx5A==}
     engines: {node: '>=18'}
 
   tailwindcss@3.4.16:
@@ -2425,12 +2431,12 @@ snapshots:
     dependencies:
       prismjs: 1.29.0
 
-  '@astrojs/svelte@6.0.2(@types/node@22.10.2)(astro@4.16.17(@types/node@22.10.2)(rollup@4.28.1)(typescript@5.7.2))(svelte@5.11.3)(typescript@5.7.2)':
+  '@astrojs/svelte@6.0.2(@types/node@22.10.2)(astro@4.16.17(@types/node@22.10.2)(rollup@4.28.1)(typescript@5.7.2))(svelte@5.14.0)(typescript@5.7.2)':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 4.0.3(svelte@5.11.3)(vite@5.4.11(@types/node@22.10.2))
+      '@sveltejs/vite-plugin-svelte': 4.0.3(svelte@5.14.0)(vite@5.4.11(@types/node@22.10.2))
       astro: 4.16.17(@types/node@22.10.2)(rollup@4.28.1)(typescript@5.7.2)
-      svelte: 5.11.3
-      svelte2tsx: 0.7.30(svelte@5.11.3)(typescript@5.7.2)
+      svelte: 5.14.0
+      svelte2tsx: 0.7.30(svelte@5.14.0)(typescript@5.7.2)
       typescript: 5.7.2
       vite: 5.4.11(@types/node@22.10.2)
     transitivePeerDependencies:
@@ -2929,23 +2935,23 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@sveltejs/vite-plugin-svelte-inspector@3.0.1(@sveltejs/vite-plugin-svelte@4.0.3(svelte@5.11.3)(vite@5.4.11(@types/node@22.10.2)))(svelte@5.11.3)(vite@5.4.11(@types/node@22.10.2))':
+  '@sveltejs/vite-plugin-svelte-inspector@3.0.1(@sveltejs/vite-plugin-svelte@4.0.3(svelte@5.14.0)(vite@5.4.11(@types/node@22.10.2)))(svelte@5.14.0)(vite@5.4.11(@types/node@22.10.2))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 4.0.3(svelte@5.11.3)(vite@5.4.11(@types/node@22.10.2))
+      '@sveltejs/vite-plugin-svelte': 4.0.3(svelte@5.14.0)(vite@5.4.11(@types/node@22.10.2))
       debug: 4.4.0
-      svelte: 5.11.3
+      svelte: 5.14.0
       vite: 5.4.11(@types/node@22.10.2)
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte@4.0.3(svelte@5.11.3)(vite@5.4.11(@types/node@22.10.2))':
+  '@sveltejs/vite-plugin-svelte@4.0.3(svelte@5.14.0)(vite@5.4.11(@types/node@22.10.2))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 3.0.1(@sveltejs/vite-plugin-svelte@4.0.3(svelte@5.11.3)(vite@5.4.11(@types/node@22.10.2)))(svelte@5.11.3)(vite@5.4.11(@types/node@22.10.2))
+      '@sveltejs/vite-plugin-svelte-inspector': 3.0.1(@sveltejs/vite-plugin-svelte@4.0.3(svelte@5.14.0)(vite@5.4.11(@types/node@22.10.2)))(svelte@5.14.0)(vite@5.4.11(@types/node@22.10.2))
       debug: 4.4.0
       deepmerge: 4.3.1
       kleur: 4.1.5
       magic-string: 0.30.15
-      svelte: 5.11.3
+      svelte: 5.14.0
       vite: 5.4.11(@types/node@22.10.2)
       vitefu: 1.0.4(vite@5.4.11(@types/node@22.10.2))
     transitivePeerDependencies:
@@ -3731,6 +3737,13 @@ snapshots:
   jsonc-parser@2.3.1: {}
 
   jsonc-parser@3.3.1: {}
+
+  kale-chat-sdk@file:kale-chat-sdk:
+    dependencies:
+      '@stellar/stellar-sdk': 13.0.0
+      buffer: 6.0.3
+    transitivePeerDependencies:
+      - debug
 
   kale-sc-sdk@file:kale-sc-sdk:
     dependencies:
@@ -4650,14 +4663,14 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svelte2tsx@0.7.30(svelte@5.11.3)(typescript@5.7.2):
+  svelte2tsx@0.7.30(svelte@5.14.0)(typescript@5.7.2):
     dependencies:
       dedent-js: 1.0.1
       pascal-case: 3.1.2
-      svelte: 5.11.3
+      svelte: 5.14.0
       typescript: 5.7.2
 
-  svelte@5.11.3:
+  svelte@5.14.0:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.5.0

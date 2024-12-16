@@ -8,6 +8,7 @@
     "contracts",
     "dist",
     "kale-sc-sdk",
+    "kale-chat-sdk",
     "node_modules",
     "wasm-miner",
     "zephyr",

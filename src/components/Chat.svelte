@@ -1,16 +1,31 @@
 <script lang="ts">
-    import { Address, scValToNative, xdr } from "@stellar/stellar-sdk";
-    import { Server } from "@stellar/stellar-sdk/rpc";
+    import {
+        Address,
+        scValToNative,
+        xdr,
+        Networks,
+    } from "@stellar/stellar-sdk";
     import { truncate } from "../utils/base";
     import { onDestroy, onMount } from "svelte";
+    import { Client } from "kale-chat-sdk";
+    import { contractId } from "../store/contractId";
+    import { account, server } from "../utils/passkey-kit";
+    import { keyId } from "../store/keyId";
+    import { rpc } from "../utils/kale";
+    import { updateContractBalance } from "../store/contractBalance";
 
-    const rpc = new Server("https://soroban-testnet.stellar.org");
+    const chatContractId =
+        "CBLMESJRDFWQFP74WAXZGBXIMXS5ANIATUA6MUVZWZBR2347XRYYHKFU";
+    const client = new Client({
+        rpcUrl: import.meta.env.PUBLIC_RPC_URL,
+        contractId: chatContractId,
+        networkPassphrase: Networks.TESTNET,
+    });
 
     interface Event {
         id: string;
         addr: string;
         timestamp: Date;
-        index: number;
         txHash: string;
         msg: string;
     }
@@ -27,8 +42,6 @@
         await getEvents(sequence - 17_280); // last 24 hrs
 
         interval = setInterval(async () => {
-            console.log("fired");
-
             const { sequence } = await rpc.getLatestLedger();
             await getEvents(sequence - 17_280); // last 24 hrs
         }, 12_000); // 5 times per minute
@@ -44,9 +57,7 @@
                 filters: [
                     {
                         type: "contract",
-                        contractIds: [
-                            "CCASSTG4YEGVZCHHVTLFEX2PILGK6LO5K62Z7PAXB2R6RGUT63B3L66V",
-                        ],
+                        contractIds: [chatContractId],
                     },
                 ],
                 // https://discord.com/channels/897514728459468821/1310801582887014411
@@ -61,7 +72,7 @@
                     cursor,
                 }) => {
                     if (events.length === 0) {
-                        if (found) return;
+                        if (limit === cursor || found) return;
                         return getEvents(cursor);
                     }
 
@@ -77,10 +88,6 @@
                                 event.topic[0],
                                 "base64",
                             ).address();
-                            let topic1 = xdr.ScVal.fromXDR(
-                                event.topic[1],
-                                "base64",
-                            );
                             let value = xdr.ScVal.fromXDR(
                                 event.value,
                                 "base64",
@@ -105,7 +112,6 @@
                                 id: event.id,
                                 addr,
                                 timestamp: new Date(event.ledgerClosedAt),
-                                index: scValToNative(topic1),
                                 txHash: event.txHash,
                                 msg: scValToNative(value),
                             });
@@ -121,7 +127,30 @@
         );
     }
 
-    function send() {}
+    async function send() {
+        if (!$contractId || !$keyId) return;
+
+        try {
+            sending = true;
+
+            let at = await client.send({
+                addr: $contractId,
+                msg,
+            });
+
+            // @ts-ignore
+            at = await account.sign(at, { keyId: $keyId });
+
+            // @ts-ignore
+            await server.send(at);
+
+            await updateContractBalance($contractId);
+
+            msg = ''
+        } finally {
+            sending = false;
+        }
+    }
 </script>
 
 <div class="flex flex-col min-w-full items-center pb-5">
@@ -132,7 +161,12 @@
                     <span
                         class="text-mono text-sm bg-black rounded-t-lg text-white px-3 py-1"
                     >
-                        {truncate(event.addr, 4)}
+                        <a
+                            class="underline"
+                            target="_blank"
+                            href="https://stellar.expert/explorer/public/tx/{event.txHash}"
+                            >{truncate(event.addr, 4)}</a
+                        >
                         &nbsp; &nbsp;
                         <time
                             class="text-xs text-gray-400"
