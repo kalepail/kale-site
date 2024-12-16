@@ -1,7 +1,7 @@
 #![no_std]
 use soroban_sdk::{
-    contract, contracterror, contractimpl, panic_with_error, symbol_short, Address, Env, String,
-    Symbol, token
+    contract, contracterror, contractimpl, panic_with_error, symbol_short, token, Address, Env,
+    String, Symbol,
 };
 
 #[contracterror]
@@ -16,7 +16,7 @@ pub struct Contract;
 
 #[contractimpl]
 impl Contract {
-    pub fn init(env: Env, asset: Address) {
+    pub fn __constructor(env: Env, asset: Address) {
         if env
             .storage()
             .instance()
@@ -32,7 +32,6 @@ impl Contract {
     pub fn send(env: Env, addr: Address, msg: String) {
         addr.require_auth();
 
-        let index = env.storage().temporary().get::<Address, u32>(&addr).unwrap_or(0);
         let asset = env
             .storage()
             .instance()
@@ -41,10 +40,7 @@ impl Contract {
 
         token::Client::new(&env, &asset).burn(&addr, &(msg.len() as i128));
 
-        // env.storage().temporary().set::<(Address, u32), String>(&(addr.clone(), index), &msg);
-        env.storage().temporary().set::<Address, u32>(&addr, &(index.wrapping_add(1)));
-
-        env.events().publish((addr.clone(), index), msg.clone());
+        env.events().publish((addr.clone(), ), msg.clone());
     }
 }
 

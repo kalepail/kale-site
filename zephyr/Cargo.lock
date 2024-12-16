@@ -768,7 +768,6 @@ version = "0.0.0"
 dependencies = [
  "serde",
  "serde_json",
- "soroban-sdk 21.7.7",
  "zephyr-sdk",
 ]
 
