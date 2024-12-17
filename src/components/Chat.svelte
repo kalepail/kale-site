@@ -38,6 +38,8 @@
     let sending: boolean = false;
 
     onMount(async () => {
+        msgs = await getMsgs();
+
         const { sequence } = await rpc.getLatestLedger();
         await getEvents(sequence - 17_280); // last 24 hrs
 
@@ -50,6 +52,15 @@
     onDestroy(() => {
         if (interval) clearInterval(interval);
     });
+
+    async function getMsgs() {
+        return fetch(
+            "https://kale-worker.sdf-ecosystem.workers.dev/chat",
+        ).then((res) => {
+            if (res.ok) return res.json();
+            else throw new Error("Failed to fetch msgs");
+        });
+    }
 
     async function getEvents(limit: number | string, found: boolean = false) {
         await rpc
