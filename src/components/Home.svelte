@@ -246,12 +246,8 @@
         }
     }
 
-    async function automate(
-        e: Event & { currentTarget: EventTarget & HTMLInputElement },
-    ) {
+    async function automate() {
         const secret = sessionStorage.getItem(`kale:secret`);
-
-        automated = e.currentTarget.checked;
 
         if ($keyId && automated && !secret) {
             try {
@@ -262,8 +258,12 @@
                 const pubkey = keypair.publicKey();
 
                 const limits: SignerLimits = new Map([
+                    [import.meta.env.PUBLIC_KALE_SAC_ID, []], // TODO would be nice to enforce this context via a policy signer so we could only call this context as a sub invocation of the `PUBLIC_KALE_CONTRACT_ID`
                     [import.meta.env.PUBLIC_KALE_CONTRACT_ID, []],
                 ]);
+
+                // TODO apparently we can't set multiple contexts?
+                // Ah I think it's the map order nonsense striking again
 
                 const { sequence } = await rpc.getLatestLedger();
                 const at = await account.addEd25519(
@@ -278,6 +278,8 @@
                 await server.send(at);
 
                 sessionStorage.setItem(`kale:secret`, secret);
+            } catch {
+                automated = false;
             } finally {
                 automating = false;
             }
@@ -326,7 +328,7 @@
             name="automate"
             id="automate"
             bind:checked={automated}
-            on:change={(e) => automate(e)}
+            on:change={automate}
         />
         Automat{automating ? "ing..." : automated ? "ed" : "e"}
     </label>

@@ -39,7 +39,7 @@
             <a
                 class="underline"
                 href={`https://stellar.expert/explorer/public/${balance_holder[0] === 'G' ? 'account' : 'contract'}/${balance_holder}`}
-                target="_blank">{truncate(balance_holder, 8)}</a
+                target="_blank">{truncate(balance_holder, 7)}</a
             >
             : {balance_amount}
             
