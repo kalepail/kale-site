@@ -16,10 +16,8 @@
     import { Api } from "@stellar/stellar-sdk/rpc";
     import { account, kale, server } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
-    import { updateContractBalance } from "../store/contractBalance";
+    import { contractBalance, updateContractBalance } from "../store/contractBalance";
     import { SignerStore, type SignerLimits } from "passkey-kit";
-
-    // TODO add automation with policy signer
 
     let interval: NodeJS.Timeout;
 
@@ -36,6 +34,7 @@
     let working = false;
     let harvesting = false;
     let transferring = false;
+    let stake = 0;
 
     let send_address: string;
     let send_amount: string;
@@ -114,10 +113,11 @@
         planting = true;
 
         try {
+            let amount = BigInt((Number($contractBalance) || 0) * (stake / 100));
             let at = await contract.plant({
                 farmer: $contractId,
-                amount: BigInt(0), // TODO make this configurable
-            });
+                amount,
+            });            
 
             if (Api.isSimulationError(at.simulation!)) {
                 if (at.simulation.error.includes("Error(Contract, #8)")) {
@@ -138,7 +138,9 @@
                 // @ts-ignore
                 await server.send(at);
 
-                console.log("Successfully planted");
+                await updateContractBalance($contractId);
+
+                console.log("Successfully planted", amount);
             }
 
             localStorage.setItem(
@@ -190,7 +192,7 @@
                 // @ts-ignore
                 await server.send(at);
 
-                console.log("Successfully worked");
+                console.log("Successfully worked", at.result);
             }
 
             localStorage.setItem(`kale:${index}:work`, Date.now().toString());
@@ -237,7 +239,7 @@
 
                 await updateContractBalance($contractId);
 
-                console.log("Successfully harvested");
+                console.log("Successfully harvested", at.result);
             }
         } finally {
             harvesting = false;
@@ -317,6 +319,7 @@
 </script>
 
 {#if $contractId}
+<div class="flex flex-col">
     <label class="inline-block mb-2">
         <input
             type="checkbox"
@@ -327,6 +330,14 @@
         />
         Automat{automating ? "ing..." : automated ? "ed" : "e"}
     </label>
+
+    <label class="inline-flex items-center mb-2 tabular-nums">
+        Stake %
+        <input class="mx-2" type="range" name="stake" id="stake" min="0" max="100" bind:value={stake} />
+        {stake}%
+        <span class="text-sm ml-2 font-mono bg-green-700 text-yellow-100 px-3 py-1 rounded-full">{Number(((Number($contractBalance) || 0) * (stake / 100) / 1e7).toFixed(7))} KALE</span>
+    </label>
+</div>
 {/if}
 
 <div class="overflow-scroll">
