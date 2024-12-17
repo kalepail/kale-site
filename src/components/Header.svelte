@@ -76,14 +76,18 @@
     }
 </script>
 
-<header class="flex flex-wrap mb-2">
+<header class="flex items-center flex-wrap mb-2">
     <h1 class="flex items-center text-xl">
         <a href="/"><strong>KALE</strong> 🥬</a>
-        <!-- <span class="mx-2">/</span>
-        <a href="/chat">Chat</a> -->
     </h1>
 
-    <div class="ml-auto flex items-center">
+    <div class="mx-auto [&>a]:underline">
+        <a href="/leaderboard">Leaderboard</a>
+        <span class="mx-2">|</span>
+        <a href="/chat">Chat</a>
+    </div>
+
+    <div class="flex items-center">
         {#if $contractId}
             <a
                 class="mr-2 font-mono text-sm underline"

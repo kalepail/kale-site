@@ -38,7 +38,7 @@
     let sending: boolean = false;
 
     onMount(async () => {
-        msgs = await getMsgs();
+        await getMsgs();
 
         const { sequence } = await rpc.getLatestLedger();
         await getEvents(sequence - 17_280); // last 24 hrs
@@ -54,12 +54,23 @@
     });
 
     async function getMsgs() {
-        return fetch(
+        msgs = await fetch(
             "https://kale-worker.sdf-ecosystem.workers.dev/chat",
         ).then((res) => {
             if (res.ok) return res.json();
             else throw new Error("Failed to fetch msgs");
-        });
+        }).then((msgs) => {
+            return msgs.map((event: any) => {
+                return {
+                    ...event,
+                    timestamp: new Date(event.timestamp),
+                }
+            })
+        })
+
+        msgs = msgs.sort(
+            (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+        );
     }
 
     async function getEvents(limit: number | string, found: boolean = false) {
@@ -90,7 +101,7 @@
                     events.forEach((event) => {
                         if (event.type !== "contract" || !event.contractId)
                             return;
-
+                            
                         if (
                             msgs.findIndex(({ id }) => id === event.id) === -1
                         ) {
