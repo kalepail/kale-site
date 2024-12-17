@@ -26,12 +26,13 @@
 </h1>
 
 <ul>
-    {#each leaderboard as { balance_holder, balance_amount }}
+    {#each leaderboard as { balance_holder, balance_amount }, i}
         <li class="font-mono">
+            {i + 1}.
             <a
                 class="underline"
-                href={`https://stellar.expert/explorer/public/account/${balance_holder}`}
-                target="_blank">{truncate(balance_holder, 4)}</a
+                href={`https://stellar.expert/explorer/public/${balance_holder[0] === 'G' ? 'account' : 'contract'}/${balance_holder}`}
+                target="_blank">{truncate(balance_holder, 8)}</a
             >
             : {balance_amount}
         </li>
