@@ -1,7 +1,10 @@
 #![cfg(test)]
 
-use super::*;
-use soroban_sdk::{testutils::{Address as _, EnvTestConfig}, Address, Env, String};
+extern crate std;
+
+use soroban_sdk::{testutils::{Address as _, EnvTestConfig}, token, xdr::{Hash, Limits, ScAddress, ScSymbol, ScVal, WriteXdr}, Address, Env, String};
+
+use crate::{Contract, ContractClient};
 
 #[test]
 fn test() {
@@ -31,4 +34,16 @@ fn test() {
 
     client.send(&addr, &msg1);
     client.send(&addr, &msg2);
+}
+
+#[test] 
+fn test_misc() {
+    let address1 = [0u8; 32];
+
+    let val1 = ScVal::Symbol(ScSymbol("Balance".try_into().unwrap()));
+    let val2 = ScVal::Address(ScAddress::Contract(Hash(address1)));
+
+    let scval = ScVal::Vec(Some(std::vec![val1, val2].try_into().unwrap()));
+
+    std::println!("{:?}", scval.to_xdr_base64(Limits::none()));
 }
