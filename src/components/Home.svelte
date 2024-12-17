@@ -113,7 +113,7 @@
         planting = true;
 
         try {
-            let amount = BigInt((Number($contractBalance) || 0) * (stake / 100));
+            let amount = BigInt(Math.floor((Number($contractBalance) || 0) * (stake / 100)));
             let at = await contract.plant({
                 farmer: $contractId,
                 amount,
