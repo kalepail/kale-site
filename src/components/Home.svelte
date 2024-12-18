@@ -138,7 +138,7 @@
                 // @ts-ignore
                 await server.send(at);
 
-                await updateContractBalance($contractId);
+                await updateContractBalance($contractId); // TODO Not sure this is working?? Maybe just a delay, should maybe update balance periodically
 
                 console.log("Successfully planted", amount);
             }

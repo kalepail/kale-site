@@ -1,22 +1,28 @@
 use serde::{Deserialize, Serialize};
-use zephyr_sdk::{prelude::*, soroban_sdk::{self, contracttype, Address, String as SorString}, EnvClient};
-
-// CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV
-const CONTRACT: [u8; 32] = [ 117, 187, 68, 112, 177, 164, 255, 97, 236, 199, 41, 94, 139, 142, 183, 68, 25, 221, 88, 110, 238, 64, 76, 223, 82, 73, 145, 93, 137, 14, 8, 119 ];
+use zephyr_sdk::{
+    prelude::{Limits, WriteXdr},
+    soroban_sdk::{
+        self, contracttype, symbol_short,
+        xdr::{LedgerEntry, LedgerEntryData, ScMapEntry, ScVal, ToXdr},
+        Address, String as SorString, Symbol,
+    },
+    utils::address_to_alloc_string,
+    ContractDataEntry, EnvClient,
+};
 
 #[contracttype]
 #[derive(Clone, Debug)]
 pub enum DataKey {
-    Balance(Address)
+    Balance(Address),
 }
 #[derive(Serialize, Deserialize)]
 pub struct Balance {
-    addr: String,
-    balance: i128
+    address: String,
+    balance: String,
 }
 #[derive(Serialize, Deserialize)]
 pub struct Request {
-    addresses: Vec<String>
+    contract: String,
 }
 
 #[no_mangle]
@@ -24,131 +30,70 @@ pub extern "C" fn debug_balances() {
     let env = EnvClient::empty();
     let req: Request = env.read_request_body();
     let mut balances: Vec<Balance> = Vec::new();
-    
-    for addr in req.addresses {
-        // let source_addr = Address::from_string(&SorString::from_str(&env.soroban(), addr));
-        
-        // match env.read_contract_entry_by_key::<DataKey, i128>(CONTRACT, DataKey::Balance(source_addr)) {
-        //     Ok(result) => {
-        //         match result {
-        //             Some(val) => {
-        //                 balances.push(Balance { addr, balance: val })
-        //             }
-        //             None => {}
-        //         }
-        //     }
-        //     Err(_) => {}
-        // }
 
-        balances.push(Balance { addr, balance: 0 })
+    let mut contract = [0u8; 32];
+    let contract_address =
+        Address::from_string(&SorString::from_str(&env.soroban(), &req.contract));
+    let contract_bytes = contract_address.to_xdr(&env.soroban());
+
+    contract_bytes
+        .slice(contract_bytes.len() - 32..contract_bytes.len())
+        .copy_into_slice(&mut contract);
+
+    match env.read_contract_entries(contract) {
+        Ok(result) => {
+            for ContractDataEntry { entry, .. } in result {
+                let LedgerEntry { data, .. } = entry;
+
+                let mut address: Option<ScVal> = None;
+                let mut balance: Option<ScVal> = None;
+
+                match data {
+                    LedgerEntryData::ContractData(entry) => {
+                        match entry.key {
+                            ScVal::Vec(Some(v)) => match v.get(0) {
+                                Some(key) => match env.try_from_scval::<Symbol>(key) {
+                                    Ok(key) => {
+                                        if key == symbol_short!("Balance") {
+                                            address = Some(v.get(1).unwrap().clone());
+                                        }
+                                    }
+                                    Err(_) => {}
+                                },
+                                None => {}
+                            },
+                            _ => {}
+                        }
+
+                        match entry.val {
+                            ScVal::Map(Some(m)) => {
+                                for ScMapEntry { key, val } in m.0.iter() {
+                                    match env.try_from_scval::<Symbol>(key) {
+                                        Ok(key) => {
+                                            if key == symbol_short!("amount") {
+                                                balance = Some(val.clone());
+                                            }
+                                        }
+                                        Err(_) => {}
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    _ => {}
+                }
+
+                if address.is_some() && balance.is_some() {
+                    balances.push(Balance {
+                        address: address_to_alloc_string(&env, env.from_scval(&address.unwrap())),
+                        balance: balance.unwrap().to_xdr_base64(Limits::none()).unwrap(),
+                    });
+                }
+            }
+        }
+        Err(_) => {}
     }
 
     env.conclude(balances)
-}  
-
-
-
-
-
-// use serde::Serialize;
-// use zephyr_sdk::{prelude::*, soroban_sdk::{self, contracttype, symbol_short, xdr::{LedgerEntryData, ScVal}, Address, Symbol}, DatabaseDerive, EnvClient};
-
-// // CB23WRDQWGSP6YPMY4UV5C4OW5CBTXKYN3XEATG7KJEZCXMJBYEHOUOV
-// const CONTRACT: [u8; 32] = [ 117, 187, 68, 112, 177, 164, 255, 97, 236, 199, 41, 94, 139, 142, 183, 68, 25, 221, 88, 110, 238, 64, 76, 223, 82, 73, 145, 93, 137, 14, 8, 119 ];
-
-// #[derive(DatabaseDerive, Serialize, Clone)]
-// #[with_name("balances")]
-// pub struct Balances {
-//     pub address: ScVal,
-//     pub balance: u32,
-// }
-
-// #[no_mangle]
-// pub extern "C" fn on_close() {
-//     let env = EnvClient::new();
-
-//     for event in env.reader().pretty().soroban_events() {
-//         if event.contract == CONTRACT {
-//             match event.topics.get(0) {
-//                 Some(topic) => {
-//                     let kind: Symbol = env.from_scval(topic);
-
-//                     if 
-//                         kind == symbol_short!("burn") ||
-//                         kind == symbol_short!("clawback") ||
-//                         kind == symbol_short!("mint") ||
-//                         kind == symbol_short!("transfer")
-//                     {
-//                         match event.topics.get(1) {
-//                             Some(topic) => {
-//                                 process_balance(&env, topic);
-
-//                                 match event.topics.get(2) {
-//                                     Some(topic) => {
-//                                         process_balance(&env, topic);
-//                                     }
-//                                     None => {}
-//                                 }
-//                             }
-//                             None => {}
-//                         }
-//                     }
-
-//                     // ["burn", from: Address]
-//                     // ["clawback", admin: Address, to: Address]
-//                     // ["mint", admin: Address, to: Address]
-//                     // ["transfer", from: Address, to: Address]
-//                 }
-//                 None => {}
-//             }
-//         }
-//     }
-// }
-
-// #[contracttype]
-// pub enum DataKey {
-//     Balance(Address)
-// }
-
-// fn process_balance(env: &EnvClient, address_scval: &ScVal) {
-//     let address: Address = env.from_scval(address_scval);
-
-//     let val1 = env.to_scval(symbol_short!("Balance"));
-//     let val2 = env.to_scval(address);
-//     let scval = ScVal::Vec(Some(vec![val1, val2].try_into().unwrap()));
-
-//     match env.read_contract_entry_by_key(CONTRACT, DataKey::Balance(address)) {
-//         Ok(result) => {
-//             match result {
-//                 Some(val) => {
-//                     match val.entry.data {
-//                         LedgerEntryData::ContractData(entry) => {
-//                             let amount: i128 = env.from_scval(&entry.val);
-                             
-//                             // env.log().debug(format!("{:?}", amount), None);
-
-//                             let table = Balances {
-//                                 address: address_scval.clone(),
-//                                 balance: amount as u32,
-//                             };
-
-//                             env.put(&table);
-//                         }
-//                         _ => {}
-//                     }
-//                 }
-//                 None => {}
-//             }
-//         }
-//         Err(_) => {}
-//     }
-// }
-
-// #[no_mangle]
-// pub extern "C" fn debug_balances() {
-//     let env = EnvClient::empty();
-
-//     let balances = env.read::<Balances>();
-
-//     env.conclude(balances);
-// }
+}
