@@ -28,24 +28,26 @@
 
 <ul>
     {#each leaderboard as { balance_holder, balance_amount }, i}
+        {#if Number(balance_amount) > 0}
         <li class="font-mono">
             {#if i < 3}
-                {i === 0 ? '🥇' : ''}
-                {i === 1 ? '🥈' : ''}
-                {i === 2 ? '🥉' : ''}
+                {i === 0 ? "🥇" : ""}
+                {i === 1 ? "🥈" : ""}
+                {i === 2 ? "🥉" : ""}
             {:else}
                 {i + 1}.
             {/if}
             <a
                 class="underline"
-                href={`https://stellar.expert/explorer/public/${balance_holder[0] === 'G' ? 'account' : 'contract'}/${balance_holder}`}
+                href={`https://stellar.expert/explorer/public/${balance_holder[0] === "G" ? "account" : "contract"}/${balance_holder}`}
                 target="_blank">{truncate(balance_holder, 7)}</a
             >
             : {balance_amount}
-            
+
             {#if balance_holder === $contractId}
-                {balance_holder === $contractId ? '🫵' : ''}
+                {balance_holder === $contractId ? "🫵" : ""}
             {/if}
         </li>
+        {/if}
     {/each}
 </ul>
