@@ -16,7 +16,10 @@
     import { Api } from "@stellar/stellar-sdk/rpc";
     import { account, kale, server } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
-    import { contractBalance, updateContractBalance } from "../store/contractBalance";
+    import {
+        contractBalance,
+        updateContractBalance,
+    } from "../store/contractBalance";
     import { SignerStore, type SignerLimits } from "passkey-kit";
 
     let interval: NodeJS.Timeout;
@@ -65,27 +68,29 @@
         interval = setInterval(
             () =>
                 getIndex().then(async (next_index) => {
+                    const secret = sessionStorage.getItem(`kale:secret`);
+
                     if (next_index > index) {
                         index = next_index;
                         block = await getBlock(index);
                         blocks.set(index, block);
-                        blocks = blocks;
-                    } else {
-                        blocks = blocks;
                     }
 
-                    const secret = sessionStorage.getItem(`kale:secret`);
+                    blocks = blocks;
 
                     if (secret && !automating && automated) {
-                        await harvest(index - 1);
-
-                        let [planted, worked] = pails.get(next_index) ?? [
-                            false,
-                            false,
-                        ];
-
                         try {
                             automating = true;
+
+                            let harvestable = pails.entries().toArray().find(([index, [planted, worked]]) => worked);
+                            let [planted, worked] = pails.get(next_index) ?? [
+                                false,
+                                false,
+                            ];
+
+                            if (harvestable) {
+                                await harvest(harvestable[0]);
+                            }
 
                             if (!planted) {
                                 await plant(index, Keypair.fromSecret(secret));
@@ -98,6 +103,11 @@
                             if (!worked && diff >= 240) {
                                 await work();
                             }
+                        } catch {
+                            // If anything fails during automation, kill the automation and the stake. For Safety™
+                            console.error("Automation failed");
+                            automated = false;
+                            stake = 0;
                         } finally {
                             automating = false;
                         }
@@ -113,11 +123,13 @@
         planting = true;
 
         try {
-            let amount = BigInt(Math.floor((Number($contractBalance) || 0) * (stake / 100)));
+            let amount = BigInt(
+                Math.floor((Number($contractBalance) || 0) * (stake / 100)),
+            );
             let at = await contract.plant({
                 farmer: $contractId,
                 amount,
-            });            
+            });
 
             if (Api.isSimulationError(at.simulation!)) {
                 if (at.simulation.error.includes("Error(Contract, #8)")) {
@@ -125,29 +137,31 @@
                     console.log("Already planted");
                 } else {
                     console.error("Plant Error:", at.simulation.error);
-                    return;
+                    throw new Error(at.simulation.error);
                 }
-            } else {
+
+                return;
+            } 
+
+            // @ts-ignore
+            at = await account.sign(
                 // @ts-ignore
-                at = await account.sign(
-                    // @ts-ignore
-                    at,
-                    keypair ? { keypair } : { keyId: $keyId },
-                );
+                at,
+                keypair ? { keypair } : { keyId: $keyId },
+            );
 
-                // @ts-ignore
-                await server.send(at);
-
-                await updateContractBalance($contractId); // TODO Not sure this is working?? Maybe just a delay, should maybe update balance periodically
-
-                console.log("Successfully planted", amount);
-            }
+            // @ts-ignore
+            await server.send(at);
 
             localStorage.setItem(
                 `kale:${i ?? index}:plant`,
                 Date.now().toString(),
             );
             pails = localStorageToMap();
+
+            await updateContractBalance($contractId); // TODO Not sure this is working?? Maybe just a delay, should maybe update balance periodically
+
+            console.log("Successfully planted", amount);
         } finally {
             planting = false;
         }
@@ -186,17 +200,19 @@
                     console.log("Already worked");
                 } else {
                     console.error("Work Error:", at.simulation.error);
-                    return;
+                    throw new Error(at.simulation.error);
                 }
-            } else {
-                // @ts-ignore
-                await server.send(at);
 
-                console.log("Successfully worked", at.result);
-            }
+                return;
+            } 
+            
+            // @ts-ignore
+            await server.send(at);
 
             localStorage.setItem(`kale:${index}:work`, Date.now().toString());
             pails = localStorageToMap();
+
+            console.log("Successfully worked", at.result);
         } finally {
             working = false;
         }
@@ -214,33 +230,27 @@
             });
 
             if (Api.isSimulationError(at.simulation!)) {
-                if (
-                    !(
-                        (
-                            at.simulation.error.includes(
-                                "Error(Contract, #9)",
-                            ) || // PailMissing
-                            at.simulation.error.includes(
-                                "Error(Contract, #10)",
-                            ) || // WorkMissing
-                            at.simulation.error.includes("Error(Contract, #14)")
-                        ) // HarvestNotReady
-                    )
-                ) {
+                if (at.simulation.error.includes("Error(Contract, #14)")) {
+                    // HarvestNotReady
+                    console.log("Harvest not ready");
+                } else {
                     console.error("Harvest Error:", at.simulation.error);
+                    throw new Error(at.simulation.error);
                 }
-            } else {
-                // @ts-ignore
-                await server.send(at);
 
-                localStorage.removeItem(`kale:${index}:plant`);
-                localStorage.removeItem(`kale:${index}:work`);
-                pails = localStorageToMap();
+                return;
+            } 
 
-                await updateContractBalance($contractId);
+            // @ts-ignore
+            await server.send(at);
 
-                console.log("Successfully harvested", at.result);
-            }
+            localStorage.removeItem(`kale:${index}:plant`);
+            localStorage.removeItem(`kale:${index}:work`);
+            pails = localStorageToMap();
+
+            await updateContractBalance($contractId);
+
+            console.log("Successfully harvested", at.result);
         } finally {
             harvesting = false;
         }
@@ -270,7 +280,6 @@
                     pubkey,
                     limits,
                     SignerStore.Temporary,
-                    sequence + 17280,
                 );
 
                 await account.sign(at, { keyId: $keyId });
@@ -290,23 +299,23 @@
         if (!$contractId || !$keyId) return;
 
         try {
-            transferring = true
+            transferring = true;
 
             const at = await kale.transfer({
                 from: $contractId,
                 to: send_address,
                 amount: BigInt(Math.floor(Number(send_amount) * 1e7)),
-            })
+            });
 
-            await account.sign(at, { keyId: $keyId })
+            await account.sign(at, { keyId: $keyId });
 
-            await server.send(at)
+            await server.send(at);
 
             await updateContractBalance($contractId);
 
-            send_amount = ''
+            send_amount = "";
         } finally {
-            transferring = false
+            transferring = false;
         }
     }
 
@@ -321,25 +330,41 @@
 </script>
 
 {#if $contractId}
-<div class="flex flex-col">
-    <label class="inline-block mb-2">
-        <input
-            type="checkbox"
-            name="automate"
-            id="automate"
-            bind:checked={automated}
-            on:change={automate}
-        />
-        Automat{automating ? "ing..." : automated ? "ed" : "e"}
-    </label>
+    <div class="flex flex-col">
+        <label class="inline-block mb-2">
+            <input
+                type="checkbox"
+                name="automate"
+                id="automate"
+                bind:checked={automated}
+                on:change={automate}
+            />
+            Automat{automating ? "ing..." : automated ? "ed" : "e"}
+        </label>
 
-    <label class="inline-flex items-center mb-2 tabular-nums">
-        Stake %
-        <input class="mx-2" type="range" name="stake" id="stake" min="0" max="100" bind:value={stake} />
-        {stake}%
-        <span class="text-sm ml-2 font-mono bg-green-700 text-yellow-100 px-3 py-1 rounded-full">{Number(((Number($contractBalance) || 0) * (stake / 100) / 1e7).toFixed(7))} KALE</span>
-    </label>
-</div>
+        <label class="inline-flex items-center mb-2 tabular-nums">
+            Stake %
+            <input
+                class="mx-2"
+                type="range"
+                name="stake"
+                id="stake"
+                min="0"
+                max="100"
+                bind:value={stake}
+            />
+            {stake}%
+            <span
+                class="text-sm ml-2 font-mono bg-green-700 text-yellow-100 px-3 py-1 rounded-full"
+                >{Number(
+                    (
+                        ((Number($contractBalance) || 0) * (stake / 100)) /
+                        1e7
+                    ).toFixed(7),
+                )} KALE</span
+            >
+        </label>
+    </div>
 {/if}
 
 <div class="overflow-scroll">
@@ -460,7 +485,10 @@
 </table>
 
 {#if $contractId}
-    <form class="bg-gray-200 p-2 rounded flex flex-wrap items-center" on:submit|preventDefault={transfer}>
+    <form
+        class="bg-gray-200 p-2 rounded flex flex-wrap items-center"
+        on:submit|preventDefault={transfer}
+    >
         <span class="w-full">Transfer KALE</span>
         <input
             class="mr-2 my-2 font-mono text-sm px-2 py-1 min-w-[300px]"
@@ -481,8 +509,7 @@
         <button
             class="bg-black text-white px-2 py-1 text-sm font-mono disabled:bg-gray-400"
             type="submit"
-            disabled={transferring}
-            >Send{transferring ? 'ing...' : ''}</button
+            disabled={transferring}>Send{transferring ? "ing..." : ""}</button
         >
     </form>
 {/if}

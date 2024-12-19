@@ -6,5 +6,4 @@ export const contractBalance: Writable<bigint | null> = writable();
 export async function updateContractBalance(address: string) {
     const { result } = await kale.balance({ id: address })
     contractBalance.set(result);
-    
 }

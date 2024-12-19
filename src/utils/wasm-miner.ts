@@ -1,7 +1,7 @@
 import { threads } from "wasm-feature-detect";
 import init, { initThreadPool, mine } from "../../wasm-miner/pkg";
 
-const thread_count = navigator.hardwareConcurrency;
+const thread_count = Math.max(navigator.hardwareConcurrency - 2, 1);
 const nonce_count = thread_count * 10_000_000;
 
 export async function loadWasm() {
