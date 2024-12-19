@@ -89,7 +89,10 @@
 
                             automating = true;
 
-                            let harvestable = pails.entries().toArray().find(([index, [planted, worked]]) => worked);
+                            let harvestable = pails
+                                .entries()
+                                .toArray()
+                                .find(([index, [planted, worked]]) => worked);
                             let [planted, worked] = pails.get(next_index) ?? [
                                 false,
                                 false,
@@ -132,6 +135,8 @@
         planting = true;
 
         try {
+            await updateContractBalance($contractId);
+
             let amount = BigInt(
                 Math.floor((Number($contractBalance) || 0) * (stake / 100)),
             );
@@ -150,7 +155,7 @@
                 }
 
                 return;
-            } 
+            }
 
             // @ts-ignore
             at = await account.sign(
@@ -168,7 +173,7 @@
             );
             pails = localStorageToMap();
 
-            await updateContractBalance($contractId); // TODO Not sure this is working?? Maybe just a delay, should maybe update balance periodically
+            await updateContractBalance($contractId);
 
             console.log("Successfully planted", amount);
         } finally {
@@ -213,8 +218,8 @@
                 }
 
                 return;
-            } 
-            
+            }
+
             // @ts-ignore
             await server.send(at);
 
@@ -248,7 +253,7 @@
                 }
 
                 return;
-            } 
+            }
 
             // @ts-ignore
             await server.send(at);
