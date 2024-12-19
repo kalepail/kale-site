@@ -104,9 +104,8 @@
                                 await work();
                             }
                         } catch {
-                            // If anything fails during automation, kill the automation and the stake. For Safety™
+                            // If anything fails during automation, kill the stake amount. For Safety™
                             console.error("Automation failed");
-                            automated = false;
                             stake = 0;
                         } finally {
                             automating = false;
