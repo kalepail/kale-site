@@ -38,6 +38,7 @@
     let harvesting = false;
     let transferring = false;
     let stake = 0;
+    let errors = 0;
 
     let send_address: string;
     let send_amount: string;
@@ -80,6 +81,11 @@
 
                     if (secret && !automating && automated) {
                         try {
+                            if (errors >= 12) {
+                                automated = false;
+                                stake = 0;
+                            }
+
                             automating = true;
 
                             let harvestable = pails.entries().toArray().find(([index, [planted, worked]]) => worked);
@@ -103,9 +109,12 @@
                             if (!worked && diff >= 240) {
                                 await work();
                             }
+
+                            errors = 0;
                         } catch {
                             // If anything fails during automation, kill the stake amount. For Safety™
                             console.error("Automation failed");
+                            errors++;
                             stake = 0;
                         } finally {
                             automating = false;
@@ -260,6 +269,7 @@
 
         if ($keyId && automated && !secret) {
             try {
+                errors = 0;
                 automating = true;
 
                 const keypair = Keypair.random();
