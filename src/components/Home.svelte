@@ -5,7 +5,6 @@
         getBlock,
         getContractData,
         getIndex,
-        rpc,
         type Block,
         type Pail,
     } from "../utils/kale";
@@ -284,7 +283,6 @@
                 // TODO apparently we can't set multiple contexts?
                 // Ah I think it's the map order nonsense striking again
 
-                const { sequence } = await rpc.getLatestLedger();
                 const at = await account.addEd25519(
                     pubkey,
                     limits,
