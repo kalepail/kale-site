@@ -81,8 +81,10 @@
                     if (secret && !automating && automated) {
                         try {
                             if (errors >= 12) {
+                                console.error("Too many errors");
                                 automated = false;
                                 stake = 0;
+                                return;
                             }
 
                             automating = true;
