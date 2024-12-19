@@ -77,17 +77,19 @@
 </script>
 
 <header class="flex items-center flex-wrap mb-2">
-    <h1 class="flex items-center text-xl">
+    <h1 class="flex items-center text-xl mr-auto">
         <a href="/"><strong>KALE</strong> 🥬</a>
     </h1>
 
-    <div class="mx-auto [&>a]:underline">
+    <div class="[&>a]:underline">
         <a href="/leaderboard">Leaderboard</a>
         <span class="mx-2">|</span>
         <a href="/chat">Chat</a>
+        <span class="mx-2">|</span>
+        <a href="https://kalepail.com/kale" target="_blank">Lore</a>
     </div>
 
-    <div class="flex items-center">
+    <div class="flex items-center ml-auto">
         {#if $contractId}
             <a
                 class="mr-2 font-mono text-sm underline"
