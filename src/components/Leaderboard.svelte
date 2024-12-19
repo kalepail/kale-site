@@ -28,7 +28,7 @@
 
 <ul>
     {#each leaderboard as { balance_holder, balance_amount }, i}
-        {#if Number(balance_amount) > 0}
+        {#if Number(balance_amount) > 0 && i < 100}
         <li class="font-mono">
             {#if i < 3}
                 {i === 0 ? "🥇" : ""}
