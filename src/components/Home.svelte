@@ -74,6 +74,15 @@
                         index = next_index;
                         block = await getBlock(index);
                         blocks.set(index, block);
+
+                        // cap blocks to most recent 10
+                        if (blocks.size > 10) {
+                            const sortedKeys = Array.from(blocks.keys()).sort((a, b) => b - a);
+
+                            for (let i = 10; i < sortedKeys.length; i++) {
+                                blocks.delete(sortedKeys[i]);
+                            }
+                        }
                     }
 
                     blocks = blocks;
@@ -200,8 +209,8 @@
                     try {
                         const work = doWork(
                             index,
-                            block!.entropy!,
-                            Address.fromString($contractId).toBuffer(),
+                            Uint8Array.from(block!.entropy!),
+                            Uint8Array.from(Address.fromString($contractId).toBuffer()),
                         );
 
                         resolve(work);
