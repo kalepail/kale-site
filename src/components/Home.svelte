@@ -153,6 +153,7 @@
                         `kale:${i ?? index}:plant`,
                         Date.now().toString(),
                     );
+                    pails = localStorageToMap();
                 } else {
                     console.error("Plant Error:", at.simulation.error);
                     throw new Error(at.simulation.error);
@@ -221,6 +222,7 @@
                     // ZeroCountTooLow
                     console.log("Already worked");
                     localStorage.setItem(`kale:${index}:work`, Date.now().toString());
+                    pails = localStorageToMap();
                 } else {
                     console.error("Work Error:", at.simulation.error);
                     throw new Error(at.simulation.error);
