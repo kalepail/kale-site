@@ -89,9 +89,7 @@
 
                             automating = true;
 
-                            let harvestable = pails
-                                .entries()
-                                .toArray()
+                            let harvestable = Array.from(pails.entries()) 
                                 .find(([index, [planted, worked]]) => worked);
                             let [planted, worked] = pails.get(next_index) ?? [
                                 false,
