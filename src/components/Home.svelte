@@ -190,15 +190,19 @@
             const { max_nonce, local_hash } = await new Promise<{
                 max_nonce: bigint;
                 local_hash: Uint8Array;
-            }>((resolve) => {
+            }>((resolve, reject) => {
                 setTimeout(() => {
-                    const work = doWork(
-                        index,
-                        block!.entropy!,
-                        Address.fromString($contractId).toBuffer(),
-                    );
+                    try {
+                        const work = doWork(
+                            index,
+                            block!.entropy!,
+                            Address.fromString($contractId).toBuffer(),
+                        );
 
-                    resolve(work);
+                        resolve(work);
+                    } catch(err) {
+                        reject(err)
+                    }
                 }, 10);
             });
 
