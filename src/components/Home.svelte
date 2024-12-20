@@ -115,7 +115,9 @@
                             }
 
                             errors = 0;
-                        } catch {
+                        } catch(err) {
+                            console.error(err);
+                            
                             // If anything fails during automation, kill the stake amount. For Safety™
                             console.error("Automation failed");
                             errors++;
