@@ -149,6 +149,10 @@
                 if (at.simulation.error.includes("Error(Contract, #8)")) {
                     // PailExists
                     console.log("Already planted");
+                    localStorage.setItem(
+                        `kale:${i ?? index}:plant`,
+                        Date.now().toString(),
+                    );
                 } else {
                     console.error("Plant Error:", at.simulation.error);
                     throw new Error(at.simulation.error);
@@ -216,6 +220,7 @@
                 if (at.simulation.error.includes("Error(Contract, #7)")) {
                     // ZeroCountTooLow
                     console.log("Already worked");
+                    localStorage.setItem(`kale:${index}:work`, Date.now().toString());
                 } else {
                     console.error("Work Error:", at.simulation.error);
                     throw new Error(at.simulation.error);
