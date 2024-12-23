@@ -83,9 +83,11 @@
 
     <div class="[&>a]:underline">
         <a href="/leaderboard">Leaderboard</a>
-        <span class="mx-2">|</span>
+        <span class="mx-1">|</span>
+        <a href="/about">About</a>
+        <span class="mx-1">|</span>
         <a href="/chat">Chat</a>
-        <span class="mx-2">|</span>
+        <span class="mx-1">|</span>
         <a href="https://kalepail.com/kale" target="_blank">Lore</a>
     </div>
 

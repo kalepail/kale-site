@@ -1,6 +1,7 @@
 {
     "rust-analyzer.linkedProjects": [
         "./contracts/Cargo.toml",
-        "./zephyr/Cargo.toml"
+        "./zephyr/Cargo.toml",
+        "./wasm-miner/Cargo.toml"
     ]
 }
