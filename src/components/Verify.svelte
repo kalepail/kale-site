@@ -47,7 +47,9 @@
                 throw new Error("Failed to verify");
             }
         }).then((res) => {
+            res.balance = `${(Number(res.balance) / 1e7)} KALE`;
             res.date = new Date(res.date).toLocaleString();
+            
             return res
         });
     }
