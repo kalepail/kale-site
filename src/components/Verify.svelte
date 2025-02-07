@@ -5,6 +5,7 @@
     let code: string | undefined;
     let data: {
         address: string
+        balance: string
         date: string
     } | undefined;
 
