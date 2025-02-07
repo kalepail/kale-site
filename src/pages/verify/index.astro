@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.svelte';
+import Verify from '../../components/Verify.svelte';
+---
+
+<Layout title="KALE 🥬 / Verify">
+	<main class="p-2 overflow-hidden">
+		<Header client:only="svelte" />
+		<Verify client:only="svelte" />
+	</main>
+</Layout>
