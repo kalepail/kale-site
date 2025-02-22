@@ -93,6 +93,7 @@
                                 console.error("Too many errors");
                                 automated = false;
                                 stake = 0;
+                                errors = 0;
                                 return;
                             }
 
