@@ -24,10 +24,10 @@
     })
 
     async function login() {
-        const { keyId_base64, contractId: cid } = await account.connectWallet();
+        const { keyIdBase64, contractId: cid } = await account.connectWallet();
 
-        keyId.set(keyId_base64);
-        localStorage.setItem("kale:keyId", keyId_base64);
+        keyId.set(keyIdBase64);
+        localStorage.setItem("kale:keyId", keyIdBase64);
 
         contractId.set(cid);
     }
@@ -37,18 +37,18 @@
 
         try {
             const {
-                keyId_base64,
+                keyIdBase64,
                 contractId: cid,
-                built,
+                signedTx,
             } = await account.createWallet(
                 "The KALEpail Project",
                 "KALE Farmer",
             );
 
-            await server.send(built);
+            await server.send(signedTx);
 
-            keyId.set(keyId_base64);
-            localStorage.setItem("kale:keyId", keyId_base64);
+            keyId.set(keyIdBase64);
+            localStorage.setItem("kale:keyId", keyIdBase64);
 
             contractId.set(cid);
         } finally {

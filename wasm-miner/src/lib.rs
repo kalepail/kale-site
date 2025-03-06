@@ -1,5 +1,3 @@
-#![feature(duration_millis_float)]
-
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use rayon::prelude::*;
 use sha3::{Digest, Keccak256};

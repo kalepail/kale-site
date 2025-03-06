@@ -254,6 +254,8 @@
     }
 
     async function harvest(index: number) {
+        // TODO if I get a #9 PailMissing we should probably toss the harvest
+
         if (!$contractId) return;
 
         harvesting = true;
@@ -303,10 +305,15 @@
                 const secret = keypair.secret();
                 const pubkey = keypair.publicKey();
 
-                const limits: SignerLimits = new Map([
-                    [import.meta.env.PUBLIC_KALE_SAC_ID, []], // TODO would be nice to enforce this context via a policy signer so we could only call this context as a sub invocation of the `PUBLIC_KALE_CONTRACT_ID`
-                    [import.meta.env.PUBLIC_KALE_CONTRACT_ID, []],
-                ]);
+                const limits: SignerLimits = new Map(
+                    import.meta.env.DEV ? [ // DEV requires the inverse order from PROD
+                        [import.meta.env.PUBLIC_KALE_CONTRACT_ID, []],
+                        [import.meta.env.PUBLIC_KALE_SAC_ID, []], // TODO would be nice to enforce this context via a policy signer so we could only call this context as a sub invocation of the `PUBLIC_KALE_CONTRACT_ID`
+                    ] : [
+                        [import.meta.env.PUBLIC_KALE_SAC_ID, []], // TODO would be nice to enforce this context via a policy signer so we could only call this context as a sub invocation of the `PUBLIC_KALE_CONTRACT_ID`
+                        [import.meta.env.PUBLIC_KALE_CONTRACT_ID, []],
+                    ]
+                );
 
                 // TODO apparently we can't set multiple contexts?
                 // Ah I think it's the map order nonsense striking again

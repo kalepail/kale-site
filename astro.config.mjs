@@ -11,14 +11,11 @@ export default defineConfig({
       "Cross-Origin-Opener-Policy": "same-origin",
     }
   },
-
   integrations: [svelte(), tailwind()],
-
   vite: {
     plugins: [
 
     ]
   },
-
   output: "static",
 });

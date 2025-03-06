@@ -19,29 +19,17 @@ if (typeof window !== 'undefined') {
 
 export const Errors = {
   1: { message: "HomesteadExists" },
-
   2: { message: "HomesteadMissing" },
-
   4: { message: "FarmPaused" },
-
   5: { message: "FarmNotPaused" },
-
   6: { message: "PlantAmountTooLow" },
-
   7: { message: "ZeroCountTooLow" },
-
   8: { message: "PailExists" },
-
   9: { message: "PailMissing" },
-
   10: { message: "WorkMissing" },
-
   11: { message: "BlockMissing" },
-
   12: { message: "BlockInvalid" },
-
   13: { message: "HashInvalid" },
-
   14: { message: "HarvestNotReady" }
 }
 

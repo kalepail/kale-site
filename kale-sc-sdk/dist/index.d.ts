@@ -1,12 +1,6 @@
 import { Buffer } from "buffer";
 import { AssembledTransaction, Client as ContractClient, type ClientOptions as ContractClientOptions } from '@stellar/stellar-sdk/contract';
 import type { u32, u64, i128, Option } from '@stellar/stellar-sdk/contract';
-export declare const networks: {
-    readonly unknown: {
-        readonly networkPassphrase: "Public Global Stellar Network ; September 2015";
-        readonly contractId: "CDL74RF5BLYR2YBLCCI7F5FB6TPSCLKEJUBSD2RSVWZ4YHF3VMFAIGWA";
-    };
-};
 export declare const Errors: {
     1: {
         message: string;
