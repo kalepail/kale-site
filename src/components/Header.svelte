@@ -12,6 +12,7 @@
         if ($keyId) {
             const { contractId: cid } = await account.connectWallet({
                 keyId: $keyId,
+                walletPublicKey: import.meta.env.PUBLIC_FACTORY_CONTRACT_ID,
             });
 
             contractId.set(cid);
@@ -24,7 +25,9 @@
     })
 
     async function login() {
-        const { keyIdBase64, contractId: cid } = await account.connectWallet();
+        const { keyIdBase64, contractId: cid } = await account.connectWallet({
+            walletPublicKey: import.meta.env.PUBLIC_FACTORY_CONTRACT_ID,
+        });
 
         keyId.set(keyIdBase64);
         localStorage.setItem("kale:keyId", keyIdBase64);

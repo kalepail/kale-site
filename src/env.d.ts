@@ -8,6 +8,7 @@ interface ImportMetaEnv {
     readonly PUBLIC_LAUNCHTUBE_JWT: string;
     readonly PUBLIC_KALE_CONTRACT_ID: string;
     readonly PUBLIC_KALE_SAC_ID: string;
+    readonly PUBLIC_FACTORY_CONTRACT_ID?: string;
   }
   
   interface ImportMeta {
