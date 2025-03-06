@@ -412,7 +412,7 @@
 <div class="overflow-scroll">
     <table class="mb-5">
         <thead>
-            <tr class="text-left [&>th]:px-2 [&>th]:border">
+            <tr class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200">
                 <th>Block</th>
                 <th>Entropy</th>
                 <th>Blocktime</th>
@@ -423,7 +423,7 @@
         <tbody>
             {#if block?.timestamp && BigInt(Math.floor(Date.now() / 1000) >= block.timestamp + BigInt(60 * 5))}
                 <tr
-                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono"
+                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
                 >
                     <td colspan="3"></td>
                     <td colspan="2">
@@ -439,7 +439,7 @@
 
             {#each Array.from(blocks).sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i}
                 <tr
-                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono"
+                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
                 >
                     <td>
                         <div class="flex items-center">
@@ -494,7 +494,7 @@
 
 <table class="mb-5">
     <thead>
-        <tr class="text-left [&>th]:px-2 [&>th]:border">
+        <tr class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200">
             <th>Block</th>
             <th>Harvest</th>
         </tr>
@@ -503,7 +503,7 @@
         {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [planted, worked]]}
             {#if worked}
                 <tr
-                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono"
+                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
                 >
                     <td>
                         <div class="flex items-center">
@@ -533,7 +533,7 @@
     >
         <span class="w-full">Transfer KALE</span>
         <input
-            class="mr-2 my-2 font-mono text-sm px-2 py-1 min-w-[300px]"
+            class="mr-2 my-2 font-mono text-sm px-2 py-1 min-w-[300px] bg-white"
             type="text"
             name="address"
             id="address"
@@ -541,7 +541,7 @@
             bind:value={send_address}
         />
         <input
-            class="mr-2 my-2 font-mono text-sm px-2 py-1 max-w-[180px]"
+            class="mr-2 my-2 font-mono text-sm px-2 py-1 max-w-[180px] bg-white"
             type="text"
             name="amount"
             id="amount"
