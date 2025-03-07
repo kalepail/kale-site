@@ -4,7 +4,10 @@
     import { contractId } from "../store/contractId";
     import { account, server } from "../utils/passkey-kit";
     import { truncate } from "../utils/base";
-    import { contractBalance, updateContractBalance } from "../store/contractBalance";
+    import {
+        contractBalance,
+        updateContractBalance,
+    } from "../store/contractBalance";
 
     let creating = false;
 
@@ -22,7 +25,7 @@
     contractId.subscribe(async (cid) => {
         if (!cid) return;
         await updateContractBalance(cid);
-    })
+    });
 
     async function login() {
         const { keyIdBase64, contractId: cid } = await account.connectWallet({
@@ -84,7 +87,7 @@
         <a href="/"><strong>KALE</strong> 🥬</a>
     </h1>
 
-    <div class="[&>a]:underline">
+    <div class="[&>a]:underline ml-auto pl-2">
         <a href="/leaderboard">Leaderboard</a>
         <span class="mx-1">|</span>
         <a href="/about">About</a>
@@ -94,14 +97,17 @@
         <a href="https://kalepail.com/kale" target="_blank">Lore</a>
     </div>
 
-    <div class="flex items-center ml-auto">
+    <div class="flex items-center ml-auto pl-2">
         {#if $contractId}
             <a
                 class="mr-2 font-mono text-sm underline"
                 href="https://stellar.expert/explorer/public/contract/{$contractId}"
                 target="_blank">{truncate($contractId, 4)}</a
             >
-            <span class="bg-green-700 text-yellow-100 px-3 py-1 rounded-full font-mono text-sm">{(Number($contractBalance ?? 0) / 1e7)} KALE</span>
+            <span
+                class="bg-green-700 text-white px-3 py-1 rounded-full font-mono text-sm"
+                >{Number($contractBalance ?? 0) / 1e7} KALE</span
+            >
             <button class="text-white bg-black px-2 py-1 ml-2" on:click={logout}
                 >Logout</button
             >

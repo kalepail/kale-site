@@ -38,7 +38,7 @@
     Leaderboard <span class="text-sm">({leaderboard.length})</span>
 </h1>
 
-<ul>
+<ul class="text-sm sm:text-base">
     {#each leaderboard as { balance_holder, balance_amount }, i}
         <!-- {#if Number(balance_amount) > 0 && i < 100} -->
         <li class="font-mono odd:bg-slate-100 {i < 10 && 'font-bold py-1'} {i < 3 && 'py-2'} {i === 0 ? '!bg-amber-400/50' : i === 1 ? '!bg-slate-400/50' : i === 2 ? '!bg-yellow-800/50' : ''} {(i === 9 || i == 99) && 'border-b'}">

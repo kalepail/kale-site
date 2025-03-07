@@ -60,7 +60,7 @@
         <div class="mb-5 pt-2 pb-5 border-b border-gray-300 mx-2">
             <form class="flex items-center mb-2" on:submit|preventDefault={onEncrypt}>
                 {#if $contractId}
-                    <button class="flex items-center bg-green-700 text-yellow-100 px-2 py-1 mr-2" type="submit">Verify <span class="bg-yellow-100 text-green-700 font-mono text-xs ml-2 px-1 rounded-full">{truncate($contractId)}</span></button>
+                    <button class="flex items-center bg-green-700 text-white px-2 py-1 mr-2" type="submit">Verify <span class="bg-white text-green-700 font-mono text-xs ml-2 px-1 rounded-full">{truncate($contractId)}</span></button>
                 {/if}
 
                 {#if code}
@@ -72,8 +72,8 @@
     
         <div class="flex flex-col mb-5 px-2">
             <form class="flex mb-2" on:submit|preventDefault={onDecrypt}>
-                <input class="border px-2 py-1 font-mono text-sm" type="text" placeholder="Verification code" bind:value={code} on:input={() => data = undefined}>
-                <button class="bg-green-700 text-yellow-100 px-2 py-1" type="submit">Confirm</button>
+                <input class="border px-2 py-1 font-mono text-sm bg-white" type="text" placeholder="Verification code" bind:value={code} on:input={() => data = undefined}>
+                <button class="bg-green-700 text-white px-2 py-1" type="submit">Confirm</button>
             </form>
 
             {#if !data}

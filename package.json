@@ -15,7 +15,7 @@
     "@astrojs/check": "^0.9.4",
     "@astrojs/svelte": "^7.0.5",
     "@stellar/stellar-sdk": "^13.1.0",
-    "@tailwindcss/vite": "^4.0.11",
+    "@tailwindcss/vite": "^4.0.12",
     "@types/node": "^22.13.9",
     "astro": "^5.4.2",
     "buffer": "^6.0.3",
@@ -24,7 +24,7 @@
     "passkey-kit": "^0.10.16",
     "postcss": "^8.5.3",
     "svelte": "^5",
-    "tailwindcss": "^4.0.11",
+    "tailwindcss": "^4.0.12",
     "typescript": "^5.8.2",
     "wasm-feature-detect": "^1.8.0",
     "@tailwindcss/typography": "^0.5.16"

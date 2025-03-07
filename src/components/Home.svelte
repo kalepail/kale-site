@@ -10,7 +10,7 @@
     } from "../utils/kale";
     import { doWork, loadWasm } from "../utils/wasm-miner";
     import { contractId } from "../store/contractId";
-    import { localStorageToMap, truncate } from "../utils/base";
+    import { countZeros, getPails, setBlocks, getBlocks } from "../utils/base";
     import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
     import { account, kale, server } from "../utils/passkey-kit";
@@ -27,8 +27,17 @@
     let block: Block | undefined;
     let pail: Pail | undefined;
 
-    let blocks: Map<number, Block | undefined> = new Map();
-    let pails: Map<number, [boolean, boolean]> = new Map();
+    let blocks: Map<number, Block | undefined> = new Map(); // TODO save last 12 blocks to localstorage
+    let pails: Map<
+        number,
+        [
+            boolean, // planted
+            boolean, // worked
+            string | null, // staked
+            [number, number] | null, // work [zeros, gap]
+            string | null, // harvested
+        ]
+    > = new Map();
 
     let automated = false;
     let automating = false;
@@ -44,7 +53,8 @@
 
     onMount(async () => {
         loadWasm();
-        pails = localStorageToMap();
+        blocks = getBlocks();
+        pails = getPails();
     });
 
     onDestroy(() => {
@@ -62,6 +72,7 @@
 
         blocks.set(index, block);
         blocks = blocks;
+        setBlocks(blocks);
 
         if (interval) clearInterval(interval);
 
@@ -77,7 +88,9 @@
 
                         // cap blocks to most recent 12
                         if (blocks.size > 12) {
-                            const sortedKeys = Array.from(blocks.keys()).sort((a, b) => b - a);
+                            const sortedKeys = Array.from(blocks.keys()).sort(
+                                (a, b) => b - a,
+                            );
 
                             for (let i = 12; i < sortedKeys.length; i++) {
                                 blocks.delete(sortedKeys[i]);
@@ -86,6 +99,7 @@
                     }
 
                     blocks = blocks;
+                    setBlocks(blocks);
 
                     if (secret && !automating && automated) {
                         try {
@@ -98,16 +112,10 @@
 
                             automating = true;
 
-                            let harvestable = Array.from(pails.entries()) 
-                                .find(([index, [planted, worked]]) => worked);
                             let [planted, worked] = pails.get(next_index) ?? [
                                 false,
                                 false,
                             ];
-
-                            if (harvestable) {
-                                await harvest(harvestable[0]);
-                            }
 
                             if (!planted) {
                                 await plant(index, Keypair.fromSecret(secret));
@@ -116,16 +124,33 @@
                             const now = Math.floor(Date.now() / 1000);
                             const diff = now - Number(block?.timestamp);
 
-                            // wait 4.5 minutes after block open to work
+                            // wait 4 minutes after block open to work
                             if (!worked && diff >= 240) {
                                 await work();
                             }
 
+                            let harvestables = pails
+                                .entries()
+                                .filter(
+                                    ([
+                                        index,
+                                        [
+                                            planted,
+                                            worked,
+                                            staked,
+                                            zeros_gap,
+                                            harvested,
+                                        ],
+                                    ]) => worked && !harvested,
+                                );
+
+                            for (let harvestable of harvestables) {
+                                await harvest(harvestable[0]);
+                            }
+
                             errors = 0;
-                        } catch(err) {
-                            console.error(err);
-                            
-                            console.error("Automation failed");
+                        } catch (err) {
+                            console.error("Automation failed", err);
                             errors++;
                         } finally {
                             automating = false;
@@ -145,8 +170,11 @@
             await updateContractBalance($contractId);
 
             let amount = BigInt(
-                errors ? 0 : // If there are errors, don't stake
-                Math.floor((Number($contractBalance) || 0) * (stake / 100)),
+                errors
+                    ? 0 // If there are errors, don't stake
+                    : Math.floor(
+                          (Number($contractBalance) || 0) * (stake / 100),
+                      ),
             );
             let at = await contract.plant({
                 farmer: $contractId,
@@ -157,11 +185,7 @@
                 if (at.simulation.error.includes("Error(Contract, #8)")) {
                     // PailExists
                     console.log("Already planted");
-                    localStorage.setItem(
-                        `kale:${i ?? index}:plant`,
-                        Date.now().toString(),
-                    );
-                    pails = localStorageToMap();
+                    pails = getPails();
                 } else {
                     console.error("Plant Error:", at.simulation.error);
                     throw new Error(at.simulation.error);
@@ -181,11 +205,8 @@
             await server.send(at);
 
             console.log("Successfully planted", amount);
-            localStorage.setItem(
-                `kale:${i ?? index}:plant`,
-                Date.now().toString(),
-            );
-            pails = localStorageToMap();
+            localStorage.setItem(`kale:${i ?? index}:plant`, amount.toString());
+            pails = getPails();
 
             await updateContractBalance($contractId);
         } finally {
@@ -208,12 +229,14 @@
                         const work = doWork(
                             index,
                             Uint8Array.from(block!.entropy!),
-                            Uint8Array.from(Address.fromString($contractId).toBuffer()),
+                            Uint8Array.from(
+                                Address.fromString($contractId).toBuffer(),
+                            ),
                         );
 
                         resolve(work);
-                    } catch(err) {
-                        reject(err)
+                    } catch (err) {
+                        reject(err);
                     }
                 }, 10);
             });
@@ -228,8 +251,7 @@
                 if (at.simulation.error.includes("Error(Contract, #7)")) {
                     // ZeroCountTooLow
                     console.log("Already worked");
-                    localStorage.setItem(`kale:${index}:work`, Date.now().toString());
-                    pails = localStorageToMap();
+                    pails = getPails();
                 } else {
                     console.error("Work Error:", at.simulation.error);
                     throw new Error(at.simulation.error);
@@ -242,8 +264,11 @@
             await server.send(at);
 
             console.log("Successfully worked", at.result);
-            localStorage.setItem(`kale:${index}:work`, Date.now().toString());
-            pails = localStorageToMap();
+            localStorage.setItem(
+                `kale:${index}:work`,
+                `[${countZeros(local_hash)},${at.result}]`,
+            );
+            pails = getPails();
         } finally {
             working = false;
         }
@@ -268,10 +293,6 @@
                 } else {
                     // All other errors
                     console.error("Harvest Error:", at.simulation.error);
-                    // Toss the pail
-                    localStorage.removeItem(`kale:${index}:plant`);
-                    localStorage.removeItem(`kale:${index}:work`);
-                    pails = localStorageToMap();        
                 }
 
                 return;
@@ -281,11 +302,14 @@
             await server.send(at);
 
             console.log("Successfully harvested", at.result);
-            localStorage.removeItem(`kale:${index}:plant`);
-            localStorage.removeItem(`kale:${index}:work`);
-            pails = localStorageToMap();
+            localStorage.setItem(`kale:${index}:harvest`, at.result.toString());
+            // localStorage.removeItem(`kale:${index}:plant`);
+            // localStorage.removeItem(`kale:${index}:work`);
+            pails = getPails(index);
 
             await updateContractBalance($contractId);
+
+            console.log(await getBlock(index));
         } finally {
             harvesting = false;
         }
@@ -303,17 +327,23 @@
                 const pubkey = keypair.publicKey();
 
                 const limits: SignerLimits = new Map(
-                    import.meta.env.DEV ? [ // DEV requires the inverse order from PROD
-                        [import.meta.env.PUBLIC_KALE_CONTRACT_ID, []],
-                        [import.meta.env.PUBLIC_KALE_SAC_ID, []], // TODO would be nice to enforce this context via a policy signer so we could only call this context as a sub invocation of the `PUBLIC_KALE_CONTRACT_ID`
-                    ] : [
-                        [import.meta.env.PUBLIC_KALE_SAC_ID, []], // TODO would be nice to enforce this context via a policy signer so we could only call this context as a sub invocation of the `PUBLIC_KALE_CONTRACT_ID`
-                        [import.meta.env.PUBLIC_KALE_CONTRACT_ID, []],
-                    ]
+                    import.meta.env.MODE === "production"
+                        ? [
+                              // production requires the inverse order from development
+                              [import.meta.env.PUBLIC_KALE_SAC_ID, undefined], // TODO would be nice to enforce this context via a policy signer so we could only call this context as a sub invocation of the `PUBLIC_KALE_CONTRACT_ID`
+                              [
+                                  import.meta.env.PUBLIC_KALE_CONTRACT_ID,
+                                  undefined,
+                              ],
+                          ]
+                        : [
+                              [
+                                  import.meta.env.PUBLIC_KALE_CONTRACT_ID,
+                                  undefined,
+                              ],
+                              [import.meta.env.PUBLIC_KALE_SAC_ID, undefined],
+                          ],
                 );
-
-                // TODO apparently we can't set multiple contexts?
-                // Ah I think it's the map order nonsense striking again
 
                 const at = await account.addEd25519(
                     pubkey,
@@ -370,8 +400,9 @@
 
 {#if $contractId}
     <div class="flex flex-col">
-        <label class="inline-block mb-2">
+        <label class="inline-flex items-baseline mb-2">
             <input
+                class="mr-1"
                 type="checkbox"
                 name="automate"
                 id="automate"
@@ -379,6 +410,7 @@
                 on:change={automate}
             />
             Automat{automating ? "ing..." : automated ? "ed" : "e"}
+            <aside class="ml-1 text-xs font-mono">({errors} Errors)</aside>
         </label>
 
         <label class="inline-flex items-center mb-2 tabular-nums">
@@ -394,7 +426,7 @@
             />
             {stake}%
             <span
-                class="text-sm ml-2 font-mono bg-green-700 text-yellow-100 px-3 py-1 rounded-full"
+                class="text-sm ml-2 font-mono bg-green-700 text-white px-3 py-1 rounded-full"
                 >{Number(
                     (
                         ((Number($contractBalance) || 0) * (stake / 100)) /
@@ -409,21 +441,24 @@
 <div class="overflow-scroll">
     <table class="mb-5">
         <thead>
-            <tr class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200">
+            <tr
+                class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200"
+            >
                 <th>Block</th>
-                <th>Entropy</th>
-                <th>Blocktime</th>
+                <th>Timer</th>
                 <th>Plant</th>
                 <th>Work</th>
+                <th>Harvest</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="[&>tr>td]:whitespace-nowrap">
+            <!-- Preemptive Plant -->
             {#if block?.timestamp && BigInt(Math.floor(Date.now() / 1000) >= block.timestamp + BigInt(60 * 5))}
                 <tr
                     class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
                 >
-                    <td colspan="3"></td>
-                    <td colspan="2">
+                    <td colspan="2"></td>
+                    <td>
                         <button
                             class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
                             on:click={() => plant(index + 1)}
@@ -431,10 +466,12 @@
                             >Plant{planting ? "ing..." : ""}</button
                         >
                     </td>
+                    <td colspan="2"></td>
                 </tr>
             {/if}
 
-            {#each Array.from(blocks).sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i}
+            <!-- Normal Plant -->
+            {#each Array.from(blocks).sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i (block_index)}
                 <tr
                     class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
                 >
@@ -445,13 +482,6 @@
                             {/if}
                             {block_index}
                         </div>
-                    </td>
-                    <td>
-                        {#if block}
-                            {#if block.entropy}
-                                {truncate(block.entropy.toString("hex"))}
-                            {/if}
-                        {/if}
                     </td>
                     <td>
                         {#if block}
@@ -467,9 +497,23 @@
                                 on:click={() => plant()}
                                 disabled={planting ||
                                     pails.get(block_index)?.[0]}
-                                >Plant{planting ? "ing..." : ""}</button
                             >
-                        {:else}{/if}
+                                Plant{planting ? "ing..." : ""}
+                            </button>
+                        {/if}
+                        {#if pails.get(block_index)?.[2]}
+                            <aside
+                                class="text-xs border px-2 py-1 rounded-full {i ===
+                                    0 && 'mt-1'}"
+                            >
+                                {Number(
+                                    (
+                                        Number(pails.get(block_index)?.[2]) /
+                                        1e7
+                                    ).toFixed(7),
+                                )} Stake
+                            </aside>
+                        {/if}
                     </td>
                     <td>
                         {#if i === 0}
@@ -479,9 +523,34 @@
                                 disabled={working ||
                                     !pails.get(block_index)?.[0] ||
                                     pails.get(block_index)?.[1]}
-                                >Work{working ? "ing..." : ""}</button
                             >
-                        {:else}{/if}
+                                Work{working ? "ing..." : ""}
+                            </button>
+                        {/if}
+                        {#if pails.get(block_index)?.[3]}
+                            <aside
+                                class="text-xs border px-2 py-1 rounded-full {i ===
+                                    0 && 'mt-1'}"
+                            >
+                                {pails.get(block_index)?.[3]?.[0]} Zeros,
+                                {pails.get(block_index)?.[3]?.[1]} Gap
+                            </aside>
+                        {/if}
+                    </td>
+                    <td>
+                        {#if i > 0 && pails.get(block_index)?.[4]}
+                            <aside
+                                class="text-xs border px-2 py-1 rounded-full {i ===
+                                    0 && 'mt-1'}"
+                            >
+                                {Number(
+                                    (
+                                        Number(pails.get(block_index)?.[4]) /
+                                        1e7
+                                    ).toFixed(7),
+                                )} Harvest
+                            </aside>
+                        {/if}
                     </td>
                 </tr>
             {/each}
@@ -496,9 +565,9 @@
             <th>Harvest</th>
         </tr>
     </thead>
-    <tbody>
-        {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [planted, worked]]}
-            {#if worked}
+    <tbody class="[&>tr>td]:whitespace-nowrap">
+        {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [planted, worked, staked, zeros_gap, harvested]] (pail_index)}
+            {#if worked && !harvested}
                 <tr
                     class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
                 >
