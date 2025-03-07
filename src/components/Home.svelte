@@ -540,7 +540,7 @@
                     <td>
                         {#if i > 0 && pails.get(block_index)?.[4]}
                             <aside
-                                class="text-xs border px-2 py-1 rounded-full {i ===
+                                class="text-xs bg-green-700 text-white px-2 py-1 rounded-full {i ===
                                     0 && 'mt-1'}"
                             >
                                 {Number(
@@ -548,7 +548,7 @@
                                         Number(pails.get(block_index)?.[4]) /
                                         1e7
                                     ).toFixed(7),
-                                )} Harvest
+                                )} KALE
                             </aside>
                         {/if}
                     </td>
