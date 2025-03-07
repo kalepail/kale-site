@@ -17,7 +17,8 @@ export function countZeros(hash: Uint8Array) {
 }
 
 export function setBlocks(blocks: Map<number, Block | undefined>) {
-    const serialized_blocks = Array.from(blocks.entries())
+    const serialized_blocks = Array
+        .from(blocks.entries())
         .filter(([index, block]) => block)
         .map(([index, block]) => {
             const serialized_block = JSON.parse(JSON.stringify(block, (key, value) =>

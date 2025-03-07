@@ -129,8 +129,8 @@
                                 await work();
                             }
 
-                            let harvestables = pails
-                                .entries()
+                            let harvestables = Array
+                                .from(pails.entries())
                                 .filter(
                                     ([
                                         index,
