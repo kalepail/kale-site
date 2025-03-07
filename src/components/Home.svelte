@@ -75,11 +75,11 @@
                         block = await getBlock(index);
                         blocks.set(index, block);
 
-                        // cap blocks to most recent 10
-                        if (blocks.size > 10) {
+                        // cap blocks to most recent 12
+                        if (blocks.size > 12) {
                             const sortedKeys = Array.from(blocks.keys()).sort((a, b) => b - a);
 
-                            for (let i = 10; i < sortedKeys.length; i++) {
+                            for (let i = 12; i < sortedKeys.length; i++) {
                                 blocks.delete(sortedKeys[i]);
                             }
                         }
@@ -89,10 +89,9 @@
 
                     if (secret && !automating && automated) {
                         try {
-                            if (errors >= 12) {
+                            if (errors > 12) {
                                 console.error("Too many errors");
                                 automated = false;
-                                stake = 0;
                                 errors = 0;
                                 return;
                             }
@@ -117,7 +116,7 @@
                             const now = Math.floor(Date.now() / 1000);
                             const diff = now - Number(block?.timestamp);
 
-                            // wait 4 minutes after block open to work
+                            // wait 4.5 minutes after block open to work
                             if (!worked && diff >= 240) {
                                 await work();
                             }
@@ -126,10 +125,8 @@
                         } catch(err) {
                             console.error(err);
                             
-                            // If anything fails during automation, kill the stake amount. For Safety™
                             console.error("Automation failed");
                             errors++;
-                            stake = 0;
                         } finally {
                             automating = false;
                         }
@@ -148,6 +145,7 @@
             await updateContractBalance($contractId);
 
             let amount = BigInt(
+                errors ? 0 : // If there are errors, don't stake
                 Math.floor((Number($contractBalance) || 0) * (stake / 100)),
             );
             let at = await contract.plant({
@@ -182,6 +180,7 @@
             // @ts-ignore
             await server.send(at);
 
+            console.log("Successfully planted", amount);
             localStorage.setItem(
                 `kale:${i ?? index}:plant`,
                 Date.now().toString(),
@@ -189,8 +188,6 @@
             pails = localStorageToMap();
 
             await updateContractBalance($contractId);
-
-            console.log("Successfully planted", amount);
         } finally {
             planting = false;
         }
@@ -244,18 +241,15 @@
             // @ts-ignore
             await server.send(at);
 
+            console.log("Successfully worked", at.result);
             localStorage.setItem(`kale:${index}:work`, Date.now().toString());
             pails = localStorageToMap();
-
-            console.log("Successfully worked", at.result);
         } finally {
             working = false;
         }
     }
 
     async function harvest(index: number) {
-        // TODO if I get a #9 PailMissing we should probably toss the harvest
-
         if (!$contractId) return;
 
         harvesting = true;
@@ -267,12 +261,17 @@
             });
 
             if (Api.isSimulationError(at.simulation!)) {
+                // NOTE don't throw on harvest errors
                 if (at.simulation.error.includes("Error(Contract, #14)")) {
                     // HarvestNotReady
                     console.log("Harvest not ready");
                 } else {
+                    // All other errors
                     console.error("Harvest Error:", at.simulation.error);
-                    throw new Error(at.simulation.error);
+                    // Toss the pail
+                    localStorage.removeItem(`kale:${index}:plant`);
+                    localStorage.removeItem(`kale:${index}:work`);
+                    pails = localStorageToMap();        
                 }
 
                 return;
@@ -281,13 +280,12 @@
             // @ts-ignore
             await server.send(at);
 
+            console.log("Successfully harvested", at.result);
             localStorage.removeItem(`kale:${index}:plant`);
             localStorage.removeItem(`kale:${index}:work`);
             pails = localStorageToMap();
 
             await updateContractBalance($contractId);
-
-            console.log("Successfully harvested", at.result);
         } finally {
             harvesting = false;
         }
@@ -298,7 +296,6 @@
 
         if ($keyId && automated && !secret) {
             try {
-                errors = 0;
                 automating = true;
 
                 const keypair = Keypair.random();
