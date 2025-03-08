@@ -1,4 +1,10 @@
 import { PasskeyKit, PasskeyServer, SACClient } from "passkey-kit";
+import { version } from "../../package.json";
+
+export const send_headers = {
+    'X-Client-Name': 'web-kale-farmer',
+    'X-Client-Version': version
+}
 
 export const account = new PasskeyKit({
     rpcUrl: import.meta.env.PUBLIC_RPC_URL,

@@ -1,7 +1,7 @@
 {
   "name": "kale-site",
   "type": "module",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -16,12 +16,12 @@
     "@astrojs/svelte": "^7.0.5",
     "@stellar/stellar-sdk": "^13.1.0",
     "@tailwindcss/vite": "^4.0.12",
-    "@types/node": "^22.13.9",
+    "@types/node": "^22.13.10",
     "astro": "^5.4.2",
     "buffer": "^6.0.3",
     "kale-chat-sdk": "file:./kale-chat-sdk",
     "kale-sc-sdk": "file:./kale-sc-sdk",
-    "passkey-kit": "^0.10.16",
+    "passkey-kit": "^0.10.17",
     "postcss": "^8.5.3",
     "svelte": "^5",
     "tailwindcss": "^4.0.12",

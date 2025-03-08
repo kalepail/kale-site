@@ -13,7 +13,7 @@
     import { countZeros, getPails, setBlocks, getBlocks } from "../utils/base";
     import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
-    import { account, kale, server } from "../utils/passkey-kit";
+    import { account, kale, send_headers, server } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
     import {
         contractBalance,
@@ -202,7 +202,7 @@
             );
 
             // @ts-ignore
-            await server.send(at);
+            await server.send(at, undefined, send_headers);
 
             console.log("Successfully planted", amount);
             localStorage.setItem(`kale:${i ?? index}:plant`, amount.toString());
@@ -261,7 +261,7 @@
             }
 
             // @ts-ignore
-            await server.send(at);
+            await server.send(at, undefined, send_headers);
 
             console.log("Successfully worked", at.result);
             localStorage.setItem(
@@ -299,7 +299,7 @@
             }
 
             // @ts-ignore
-            await server.send(at);
+            await server.send(at, undefined, send_headers);
 
             console.log("Successfully harvested", at.result);
             localStorage.setItem(`kale:${index}:harvest`, at.result.toString());
@@ -353,7 +353,7 @@
 
                 await account.sign(at, { keyId: $keyId });
 
-                await server.send(at);
+                await server.send(at, undefined, send_headers);
 
                 sessionStorage.setItem(`kale:secret`, secret);
             } catch {
@@ -378,7 +378,7 @@
 
             await account.sign(at, { keyId: $keyId });
 
-            await server.send(at);
+            await server.send(at, undefined, send_headers);
 
             await updateContractBalance($contractId);
 

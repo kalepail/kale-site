@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { keyId } from "../store/keyId";
     import { contractId } from "../store/contractId";
-    import { account, server } from "../utils/passkey-kit";
+    import { account, send_headers, server } from "../utils/passkey-kit";
     import { truncate } from "../utils/base";
     import {
         contractBalance,
@@ -51,7 +51,7 @@
                 "KALE Farmer",
             );
 
-            await server.send(signedTx);
+            await server.send(signedTx, undefined, send_headers);
 
             keyId.set(keyIdBase64);
             localStorage.setItem("kale:keyId", keyIdBase64);
