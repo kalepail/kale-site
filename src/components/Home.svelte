@@ -414,7 +414,7 @@
         </label>
 
         <label class="inline-flex items-center mb-2 tabular-nums">
-            Stake %
+            <aside on:click={() => stake = Math.max(stake - 1, 0)}>Stake %</aside>
             <input
                 class="mx-2"
                 type="range"
@@ -424,7 +424,7 @@
                 max="100"
                 bind:value={stake}
             />
-            {stake}%
+            <aside on:click={() => stake = Math.min(stake + 1, 100)}>{stake}%</aside>
             <span
                 class="text-sm ml-2 font-mono bg-green-700 text-white px-3 py-1 rounded-full"
                 >{Number(
