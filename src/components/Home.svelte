@@ -185,6 +185,7 @@
                 if (at.simulation.error.includes("Error(Contract, #8)")) {
                     // PailExists
                     console.log("Already planted");
+                    localStorage.setItem(`kale:${i ?? index}:plant`, '0');
                     pails = getPails();
                 } else {
                     console.error("Plant Error:", at.simulation.error);
@@ -205,7 +206,7 @@
             await server.send(at, undefined, send_headers);
 
             console.log("Successfully planted", amount);
-            localStorage.setItem(`kale:${i ?? index}:plant`, amount.toString());
+            localStorage.setItem(`kale:${i ?? index}:plant`, amount.toString()); // Inaccurate but prevents replanting
             pails = getPails();
 
             await updateContractBalance($contractId);
@@ -251,6 +252,10 @@
                 if (at.simulation.error.includes("Error(Contract, #7)")) {
                     // ZeroCountTooLow
                     console.log("Already worked");
+                    localStorage.setItem(
+                        `kale:${index}:work`,
+                        `[0,0]`, // Inaccurate but prevents reworking
+                    );
                     pails = getPails();
                 } else {
                     console.error("Work Error:", at.simulation.error);
@@ -290,6 +295,10 @@
                 if (at.simulation.error.includes("Error(Contract, #14)")) {
                     // HarvestNotReady
                     console.log("Harvest not ready");
+                } else if (at.simulation.error.includes("Error(Contract, #9)")) {
+                    console.log("Already harvested");
+                    localStorage.setItem(`kale:${index}:harvest`, "0"); // Inaccurate but prevents reharvesting
+                    pails = getPails();
                 } else {
                     // All other errors
                     console.error("Harvest Error:", at.simulation.error);
@@ -303,8 +312,6 @@
 
             console.log("Successfully harvested", at.result);
             localStorage.setItem(`kale:${index}:harvest`, at.result.toString());
-            // localStorage.removeItem(`kale:${index}:plant`);
-            // localStorage.removeItem(`kale:${index}:work`);
             pails = getPails(index);
 
             await updateContractBalance($contractId);
