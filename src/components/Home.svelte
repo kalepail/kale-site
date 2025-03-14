@@ -185,7 +185,7 @@
                 if (at.simulation.error.includes("Error(Contract, #8)")) {
                     // PailExists
                     console.log("Already planted");
-                    localStorage.setItem(`kale:${i ?? index}:plant`, '0');
+                    localStorage.setItem(`kale:${i ?? index}:plant`, 'NaN');
                     pails = getPails();
                 } else {
                     console.error("Plant Error:", at.simulation.error);
@@ -206,7 +206,7 @@
             await server.send(at, undefined, send_headers);
 
             console.log("Successfully planted", amount);
-            localStorage.setItem(`kale:${i ?? index}:plant`, amount.toString()); // Inaccurate but prevents replanting
+            localStorage.setItem(`kale:${i ?? index}:plant`, amount.toString());
             pails = getPails();
 
             await updateContractBalance($contractId);
@@ -254,7 +254,7 @@
                     console.log("Already worked");
                     localStorage.setItem(
                         `kale:${index}:work`,
-                        `[0,0]`, // Inaccurate but prevents reworking
+                        `["NaN","NaN"]`,
                     );
                     pails = getPails();
                 } else {
@@ -297,7 +297,7 @@
                     console.log("Harvest not ready");
                 } else if (at.simulation.error.includes("Error(Contract, #9)")) {
                     console.log("Already harvested");
-                    localStorage.setItem(`kale:${index}:harvest`, "0"); // Inaccurate but prevents reharvesting
+                    localStorage.setItem(`kale:${index}:harvest`, 'NaN');
                     pails = getPails();
                 } else {
                     // All other errors

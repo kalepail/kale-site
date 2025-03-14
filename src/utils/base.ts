@@ -71,9 +71,9 @@ function processStorage(
     map: Map<number, [
         boolean,
         boolean,
-        string | null,
-        [number, number] | null,
-        string | null
+        string | 'NaN' | null,
+        [number | 'NaN', number | 'NaN'] | null,
+        string | 'NaN' | null
     ]>, 
     storage: Storage, 
     curr_index?: number

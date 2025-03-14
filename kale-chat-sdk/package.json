@@ -8,10 +8,10 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@stellar/stellar-sdk": "13.1.0",
-    "buffer": "6.0.3"
+    "buffer": "6.0.3",
+    "@stellar/stellar-sdk": "13.1.0"
   },
   "devDependencies": {
-    "typescript": "5.7.3"
+    "typescript": "5.8.2"
   }
 }
