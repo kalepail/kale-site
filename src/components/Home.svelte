@@ -406,7 +406,7 @@
 </script>
 
 {#if $contractId}
-    <div class="flex flex-col">
+    <div class="flex flex-col items-start">
         <label class="inline-flex items-baseline mb-2">
             <input
                 class="mr-1"
