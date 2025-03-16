@@ -5,10 +5,11 @@
   },
   "exclude": [
     ".astro",
+    "bun_tests",
     "contracts",
     "dist",
-    "kale-sc-sdk",
     "kale-chat-sdk",
+    "kale-sc-sdk",
     "node_modules",
     "wasm-miner",
     "zephyr",
