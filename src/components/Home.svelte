@@ -136,20 +136,20 @@
                                 await work();
                             }
 
-                            let harvestables = Array
-                                .from(pails.entries())
-                                .filter(
-                                    ([
-                                        index,
-                                        [
-                                            planted,
-                                            worked,
-                                            staked,
-                                            zeros_gap,
-                                            harvested,
-                                        ],
-                                    ]) => worked && !harvested,
-                                );
+                            let harvestables = Array.from(
+                                pails.entries(),
+                            ).filter(
+                                ([
+                                    index,
+                                    [
+                                        planted,
+                                        worked,
+                                        staked,
+                                        zeros_gap,
+                                        harvested,
+                                    ],
+                                ]) => worked && !harvested,
+                            );
 
                             for (let harvestable of harvestables) {
                                 await harvest(harvestable[0]);
@@ -192,7 +192,7 @@
                 if (at.simulation.error.includes("Error(Contract, #8)")) {
                     // PailExists
                     console.log("Already planted");
-                    localStorage.setItem(`kale:${i ?? index}:plant`, 'NaN');
+                    localStorage.setItem(`kale:${i ?? index}:plant`, "NaN");
                     pails = getPails();
                 } else {
                     console.error("Plant Error:", at.simulation.error);
@@ -259,10 +259,7 @@
                 if (at.simulation.error.includes("Error(Contract, #7)")) {
                     // ZeroCountTooLow
                     console.log("Already worked");
-                    localStorage.setItem(
-                        `kale:${index}:work`,
-                        `["NaN","NaN"]`,
-                    );
+                    localStorage.setItem(`kale:${index}:work`, `["NaN","NaN"]`);
                     pails = getPails();
                 } else {
                     console.error("Work Error:", at.simulation.error);
@@ -302,9 +299,11 @@
                 if (at.simulation.error.includes("Error(Contract, #14)")) {
                     // HarvestNotReady
                     console.log("Harvest not ready");
-                } else if (at.simulation.error.includes("Error(Contract, #9)")) {
+                } else if (
+                    at.simulation.error.includes("Error(Contract, #9)")
+                ) {
                     console.log("Already harvested");
-                    localStorage.setItem(`kale:${index}:harvest`, 'NaN');
+                    localStorage.setItem(`kale:${index}:harvest`, "NaN");
                     pails = getPails();
                 } else {
                     // All other errors
@@ -428,7 +427,9 @@
         </label>
 
         <label class="inline-flex items-center mb-2 tabular-nums">
-            <aside on:click={() => stake = Math.max(stake - 1, 0)}>Stake %</aside>
+            <aside on:click={() => (stake = Math.max(stake - 1, 0))}>
+                Stake %
+            </aside>
             <input
                 class="mx-2"
                 type="range"
@@ -438,7 +439,9 @@
                 max="100"
                 bind:value={stake}
             />
-            <aside on:click={() => stake = Math.min(stake + 1, 100)}>{stake}%</aside>
+            <aside on:click={() => (stake = Math.min(stake + 1, 100))}>
+                {stake}%
+            </aside>
             <span
                 class="text-sm ml-2 font-mono bg-green-700 text-white px-3 py-1 rounded-full"
                 >{Number(
@@ -635,6 +638,14 @@
         >
     </form>
 {/if}
+
+<aside class="text-xs mt-5 mb-1">Play (then mute if you want) to help keep this tab active</aside>
+<audio class="mb-2" controls loop>
+    <source
+        type="audio/mpeg"
+        src="kale-farmer-song.mp3"
+    /> Your browser does not support the audio element.</audio
+>
 
 <p class="mt-10">
     Learn more about <a
