@@ -17,6 +17,7 @@ import "../styles/global.css";
 		<link rel="icon" type="image/png" href="/favicon.png" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		
 		<meta property="og:title" content={title}>
 		<meta property="og:description" content="A Proof-of-Teamwork Stellar asset powered by Soroban">
 		<meta property="og:image" content="https://farm.kalepail.com/meta.jpg">
@@ -27,8 +28,16 @@ import "../styles/global.css";
 		<meta name="twitter:title" content={title}>
 		<meta name="twitter:description" content="A Proof-of-Teamwork Stellar asset powered by Soroban">
 		<meta name="twitter:image" content="https://farm.kalepail.com/meta.jpg">
+
+		<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 	</head>
 	<body>
 		<slot />
+
+		<div 
+			class="cf-turnstile"
+		 	data-sitekey=`${import.meta.env.PROD ? '0x4AAAAAABBPiK_8QHc6n8E4' : '1x00000000000000000000AA'}`
+			data-appearance="interaction-only"
+		></div>
 	</body>
 </html>

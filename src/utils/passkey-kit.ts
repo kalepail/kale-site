@@ -1,9 +1,16 @@
 import { PasskeyKit, PasskeyServer, SACClient } from "passkey-kit";
 import { version } from "../../package.json";
 
-export const send_headers = {
-    'X-Client-Name': 'web-kale-farmer',
-    'X-Client-Version': version
+export function sendHeaders() {
+    const turnstile_response = document.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement;
+
+    console.log('turnstile_response', turnstile_response?.value);
+
+    return {
+        'X-Client-Name': 'web-kale-farmer',
+        'X-Client-Version': version,
+        'X-Turnstile-Response': turnstile_response?.value
+    }
 }
 
 export const account = new PasskeyKit({

@@ -17,6 +17,7 @@
     "@stellar/stellar-sdk": "^13.1.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.0.14",
+    "@types/node": "^22.13.10",
     "astro": "^5.5.2",
     "buffer": "^6.0.3",
     "kale-chat-sdk": "file:./kale-chat-sdk",
@@ -26,7 +27,6 @@
     "svelte": "^5",
     "tailwindcss": "^4.0.14",
     "typescript": "^5.8.2",
-    "wasm-feature-detect": "^1.8.0",
-    "@types/node": "^22.13.10"
+    "wasm-feature-detect": "^1.8.0"
   }
 }
