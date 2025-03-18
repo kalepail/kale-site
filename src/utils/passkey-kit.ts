@@ -2,8 +2,6 @@ import { PasskeyKit, PasskeyServer, SACClient } from "passkey-kit";
 import { version } from "../../package.json";
 
 export function setLTHeaders(token: string) {
-    console.log(token);
-
     server.launchtubeHeaders = {
         'X-Client-Name': 'web-kale-farmer',
         'X-Client-Version': version,
