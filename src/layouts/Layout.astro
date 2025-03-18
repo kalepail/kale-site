@@ -39,8 +39,14 @@ import "../styles/global.css";
 		<script>
 			import { turnstileCallback } from "../store/turnstileToken";
 
-			turnstile.ready(() => {
-				turnstile.render(".cf-turnstile", {
+			declare global {
+				interface Window {
+					turnstile: any;
+				}
+			}
+
+			window.turnstile.ready(() => {
+				window.turnstile.render(".cf-turnstile", {
 					appearance: "interaction-only",
 					sitekey: `${import.meta.env.PROD ? '0x4AAAAAABBPiK_8QHc6n8E4' : '1x00000000000000000000AA'}`,
 					'response-field': false,
