@@ -29,15 +29,26 @@ import "../styles/global.css";
 		<meta name="twitter:description" content="A Proof-of-Teamwork Stellar asset powered by Soroban">
 		<meta name="twitter:image" content="https://farm.kalepail.com/meta.jpg">
 
-		<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+		<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" is:inline></script>
 	</head>
 	<body>
 		<slot />
 
-		<div 
-			class="cf-turnstile"
-		 	data-sitekey=`${import.meta.env.PROD ? '0x4AAAAAABBPiK_8QHc6n8E4' : '1x00000000000000000000AA'}`
-			data-appearance="interaction-only"
-		></div>
+		<div class="cf-turnstile"></div>
+
+		<script>
+			import { turnstileCallback } from "../store/turnstileToken";
+
+			turnstile.ready(() => {
+				turnstile.render(".cf-turnstile", {
+					appearance: "interaction-only",
+					sitekey: `${import.meta.env.PROD ? '0x4AAAAAABBPiK_8QHc6n8E4' : '1x00000000000000000000AA'}`,
+					'response-field': false,
+					'feedback-enabled': false,
+					callback: (token: string) => turnstileCallback(token),
+					'error-callback': (error: any) => console.error(error),
+				});
+			});
+		</script>
 	</body>
 </html>

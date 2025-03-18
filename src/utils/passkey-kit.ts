@@ -1,15 +1,13 @@
 import { PasskeyKit, PasskeyServer, SACClient } from "passkey-kit";
 import { version } from "../../package.json";
 
-export function sendHeaders() {
-    const turnstile_response = document.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement;
+export function setLTHeaders(token: string) {
+    console.log(token);
 
-    console.log('turnstile_response', turnstile_response?.value);
-
-    return {
+    server.launchtubeHeaders = {
         'X-Client-Name': 'web-kale-farmer',
         'X-Client-Version': version,
-        'X-Turnstile-Response': turnstile_response?.value
+        'X-Turnstile-Response': token
     }
 }
 
