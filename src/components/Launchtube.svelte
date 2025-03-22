@@ -14,6 +14,8 @@
     let consent = false;
     let lt_jwt: string | null = localStorage.getItem("kale:jwt");
 
+    // TODO support G-address and off-site signing (will require signed transaction pasting)
+
     async function handleSubmit(event: Event) {
         if (!$contractId || !$keyId) return;
 
@@ -106,6 +108,7 @@
                 <input class="pl-2 py-1 bg-white" type="number" min="10" max="1000" bind:value={amount} on:change={clampAmount}>
                 <span class="pr-2">XLM</span>
             </div>
+            <aside class="text-xs">10 – 1000 XLM</aside>
         </label>
         
         <label class="flex flex-col">
