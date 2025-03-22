@@ -72,7 +72,7 @@
     
         <div class="flex flex-col mb-5 px-2">
             <form class="flex mb-2" on:submit|preventDefault={onDecrypt}>
-                <input class="border px-2 py-1 font-mono text-sm bg-white" type="text" placeholder="Verification code" bind:value={code} on:input={() => data = undefined}>
+                <input class="px-2 py-1 font-mono text-sm bg-white" type="text" placeholder="Verification code" bind:value={code} on:input={() => data = undefined}>
                 <button class="bg-green-700 text-white px-2 py-1" type="submit">Confirm</button>
             </form>
 

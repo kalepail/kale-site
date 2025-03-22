@@ -9,6 +9,7 @@
         updateContractBalance,
     } from "../store/contractBalance";
     import { turnstileToken } from "../store/turnstileToken";
+    import copy from 'copy-to-clipboard'
 
     let creating = false;
 
@@ -69,6 +70,13 @@
         }
     }
 
+    function copyContractId() {
+        if ($contractId) {
+            copy($contractId);
+            alert("Contract id copied to clipboard");
+        }
+    }
+
     function logout() {
         keyId.set(null);
         contractId.set(null);
@@ -98,6 +106,8 @@
         <a href="/leaderboard">Leaderboard</a>
         <span class="mx-1">|</span>
         <a href="/about">About</a>
+        <!-- <span class="mx-1">|</span>
+        <a href="/launchtube">Launchtube</a> -->
         <span class="mx-1">|</span>
         <a href="/chat">Chat</a>
         <span class="mx-1">|</span>
@@ -111,6 +121,7 @@
                 href="https://stellar.expert/explorer/public/contract/{$contractId}"
                 target="_blank">{truncate($contractId, 4)}</a
             >
+            <button class="mr-2 text-xl" on:click={copyContractId}>⧉</button>
             <span
                 class="bg-green-700 text-white px-3 py-1 rounded-full font-mono text-sm"
                 >{Number($contractBalance ?? 0) / 1e7} KALE</span

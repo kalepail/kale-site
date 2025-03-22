@@ -21,6 +21,7 @@
     "@types/node": "^22.13.10",
     "astro": "^5.5.3",
     "buffer": "^6.0.3",
+    "copy-to-clipboard": "^3.3.3",
     "kale-chat-sdk": "file:./kale-chat-sdk",
     "kale-sc-sdk": "file:./kale-sc-sdk",
     "passkey-kit": "^0.10.19",
