@@ -10,7 +10,7 @@
     } from "../utils/kale";
     import { doWork, loadWasm } from "../utils/wasm-miner";
     import { contractId } from "../store/contractId";
-    import { countZeros, getPails, setBlocks, getBlocks } from "../utils/base";
+    import { countZeros, getPails, setBlocks, getBlocks, getRandomNumber } from "../utils/base";
     import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
     import { account, kale, setLTHeaders, server } from "../utils/passkey-kit";
@@ -54,8 +54,9 @@
 
     onMount(async () => {
         loadWasm();
-        blocks = getBlocks();
-        pails = getPails();
+        index = await getIndex();
+        blocks = getBlocks(index);
+        pails = getPails(index);
     });
 
     onDestroy(() => {
@@ -124,16 +125,20 @@
                                 false,
                             ];
 
-                            if (!planted) {
-                                await plant(index, Keypair.fromSecret(secret));
-                            }
-
                             const now = Math.floor(Date.now() / 1000);
                             const diff = now - Number(block?.timestamp);
 
-                            // wait 4 minutes after block open to work
-                            if (!worked && diff >= 240) {
+                            if (!planted && !worked && diff >= getRandomNumber(0, 180) && diff <= 180) { // plant between 0 and 180 seconds but not after 180 seconds
+                                await plant(index, Keypair.fromSecret(secret));
+                            }
+
+                            if (planted && !worked && diff >= getRandomNumber(180, 260)) { // begin working between 180 and 260 seconds
                                 await work();
+                            }
+
+                            // wait 30 seconds into the block before beginning to harvest
+                            if (diff < 30) {
+                                return;
                             }
 
                             let harvestables = Array.from(

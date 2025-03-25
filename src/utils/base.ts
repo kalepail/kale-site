@@ -16,6 +16,12 @@ export function countZeros(hash: Uint8Array) {
     return zeroCount;
 }
 
+export function getRandomNumber(min: number, max: number) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 export function setBlocks(blocks: Map<number, Block | undefined>) {
     const serialized_blocks = Array
         .from(blocks.entries())
@@ -31,11 +37,15 @@ export function setBlocks(blocks: Map<number, Block | undefined>) {
     localStorage.setItem('kale:blocks', JSON.stringify(serialized_blocks));
 }
 
-export function getBlocks(): Map<number, Block | undefined> {
+export function getBlocks(curr_index?: number): Map<number, Block | undefined> {
     const blocks = new Map<number, Block | undefined>();
     const serialized_blocks = JSON.parse(localStorage.getItem('kale:blocks') || '[]');
 
     for (const [index, serializedBlock] of serialized_blocks) {
+        if (curr_index && curr_index > index + 12) {
+            continue;
+        }
+
         const block = JSON.parse(JSON.stringify(serializedBlock), (key, value) => {
             if (/^-?\d+$/.test(value)) {
                 return BigInt(value);
@@ -50,7 +60,7 @@ export function getBlocks(): Map<number, Block | undefined> {
     return blocks;
 }
 
-export function getPails(index?: number) {
+export function getPails(curr_index?: number) {
     const map: Map<number, [
         boolean, // planted
         boolean, // worked
@@ -61,8 +71,8 @@ export function getPails(index?: number) {
 
     // TODO rehydrate this on login from some 24 hr reverse lookup
 
-    processStorage(map, sessionStorage, index);
-    processStorage(map, localStorage, index);
+    processStorage(map, sessionStorage, curr_index);
+    processStorage(map, localStorage, curr_index);
 
     return map
 }
