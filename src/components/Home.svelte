@@ -128,7 +128,7 @@
                             const now = Math.floor(Date.now() / 1000);
                             const diff = now - Number(block?.timestamp);
 
-                            if (!planted && !worked && diff >= getRandomNumber(0, 180) && diff <= 180) { // plant between 0 and 180 seconds but not after 180 seconds
+                            if (!planted && !worked && diff >= getRandomNumber(0, 180) && diff <= 240) { // plant between 0 and 180 seconds but not after 240 seconds
                                 await plant(index, Keypair.fromSecret(secret));
                             }
 
@@ -291,9 +291,9 @@
     async function harvest(index: number) {
         if (!$contractId) return;
 
-        harvesting = true;
-
         try {
+            harvesting = true;
+            
             const at = await contract.harvest({
                 farmer: $contractId,
                 index,
