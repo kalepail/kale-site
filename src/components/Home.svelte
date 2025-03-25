@@ -661,6 +661,14 @@
 </p>
 
 <p class="mt-2">
+    View the <a
+        class="underline text-blue-600"
+        href="https://github.com/kalepail/KALE-site"
+        target="_blank">code for this site</a
+    >
+</p>
+
+<p class="mt-2">
     <a
         class="underline text-blue-600"
         href="/verify">Verify your account</a
