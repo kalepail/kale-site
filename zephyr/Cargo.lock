@@ -1023,7 +1023,7 @@ dependencies = [
 [[package]]
 name = "rs-zephyr-common"
 version = "0.1.8"
-source = "git+https://github.com/xycloo/rs-zephyr-toolkit?rev=7e9e4580cb5918db9f088126c89e496c09b6c649#7e9e4580cb5918db9f088126c89e496c09b6c649"
+source = "git+https://github.com/xycloo/rs-zephyr-toolkit?rev=7e9e458#7e9e4580cb5918db9f088126c89e496c09b6c649"
 dependencies = [
  "anyhow",
  "http",
@@ -1739,7 +1739,7 @@ dependencies = [
 [[package]]
 name = "zephyr-sdk"
 version = "0.2.5"
-source = "git+https://github.com/xycloo/rs-zephyr-toolkit?rev=7e9e4580cb5918db9f088126c89e496c09b6c649#7e9e4580cb5918db9f088126c89e496c09b6c649"
+source = "git+https://github.com/xycloo/rs-zephyr-toolkit?rev=7e9e458#7e9e4580cb5918db9f088126c89e496c09b6c649"
 dependencies = [
  "bincode",
  "charming-fork-zephyr",

@@ -671,6 +671,13 @@
 <p class="mt-2">
     <a
         class="underline text-blue-600"
+        href="/upgrade">Upgrade your wallet</a
+    >
+</p>
+
+<p class="mt-2">
+    <a
+        class="underline text-blue-600"
         href="/verify">Verify your account</a
     >
 </p>
