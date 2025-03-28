@@ -19,6 +19,8 @@
         await account.sign(at, { keyId: $keyId });
 
         await server.send(at);
+
+        alert('Wallet code upgraded successfully');
     }
 </script>
 
