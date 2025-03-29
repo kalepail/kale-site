@@ -12,7 +12,7 @@
 
     let amount = 100;
     let consent = false;
-    let lt_jwt: string | null = localStorage.getItem("kale:jwt");
+    let lt_jwt: string | null = sessionStorage.getItem("kale:jwt");
 
     // TODO support G-address and off-site signing (will require signed transaction pasting)
 
@@ -49,7 +49,7 @@
 
         if (!Api.isSimulationSuccess(as.simulation!)) {
             alert(`Simulation failed: ${as.simulation?.error}`);
-            throw new Error("Simulation failed");
+            return;
         }
 
         const { built } = await account.sign(as, { keyId: $keyId });
@@ -74,7 +74,7 @@
         });
 
         if (lt_jwt) {
-            localStorage.setItem("kale:jwt", lt_jwt);
+            sessionStorage.setItem("kale:jwt", lt_jwt);
         }
 
         console.log(lt_jwt);
