@@ -12,13 +12,23 @@
             return;
         }
 
-        const at = await account.wallet!.update_contract_code({
+        const at = await account.wallet?.update_contract_code({
             hash: Buffer.from(hash, 'hex'),
         })
 
-        await account.sign(at, { keyId: $keyId });
+        if (!at) {
+            alert('Failed to create transaction');
+            return;
+        }
 
-        await server.send(at);
+        try {
+            await account.sign(at, { keyId: $keyId });
+            await server.send(at);
+        } catch (err) {
+            console.error('Error sending transaction:', err);
+            alert('Failed to send transaction');
+            return;
+        }
 
         alert('Wallet code upgraded successfully');
     }
