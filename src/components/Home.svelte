@@ -191,6 +191,8 @@
             let at = await contract.plant({
                 farmer: $contractId,
                 amount,
+            }, {
+                timeoutInSeconds: 30,
             });
 
             if (Api.isSimulationError(at.simulation!)) {
@@ -258,6 +260,8 @@
                 farmer: $contractId,
                 hash: Buffer.from(local_hash),
                 nonce: max_nonce,
+            }, {
+                timeoutInSeconds: 30,
             });
 
             if (Api.isSimulationError(at.simulation!)) {
@@ -297,6 +301,8 @@
             const at = await contract.harvest({
                 farmer: $contractId,
                 index,
+            }, {
+                timeoutInSeconds: 30,
             });
 
             if (Api.isSimulationError(at.simulation!)) {
