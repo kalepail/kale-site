@@ -24,6 +24,7 @@
     "copy-to-clipboard": "^3.3.3",
     "kale-chat-sdk": "file:./kale-chat-sdk",
     "kale-sc-sdk": "file:./kale-sc-sdk",
+    "kale-tractor-sdk": "file:./kale-tractor-sdk",
     "passkey-kit": "^0.10.19",
     "postcss": "^8.5.3",
     "svelte": "^5",

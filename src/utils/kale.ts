@@ -1,6 +1,7 @@
 import { Address, scValToNative, xdr } from "@stellar/stellar-sdk";
 import { Durability, Server } from "@stellar/stellar-sdk/rpc";
 import { Client } from "kale-sc-sdk";
+import { Client as TractorClient } from "kale-tractor-sdk";
 
 export interface Block {
     timestamp?: bigint,
@@ -27,6 +28,12 @@ export const rpc = new Server(import.meta.env.PUBLIC_RPC_URL);
 export const contract = new Client({
     rpcUrl: import.meta.env.PUBLIC_RPC_URL,
     contractId: import.meta.env.PUBLIC_KALE_CONTRACT_ID,
+    networkPassphrase: import.meta.env.PUBLIC_NETWORK_PASSPHRASE,
+})
+
+export const tractor = new TractorClient({
+    rpcUrl: import.meta.env.PUBLIC_RPC_URL,
+    contractId: 'CBGSBKYMYO6OMGHQXXNOBRGVUDFUDVC2XLC3SXON5R2SNXILR7XCKKY3',
     networkPassphrase: import.meta.env.PUBLIC_NETWORK_PASSPHRASE,
 })
 

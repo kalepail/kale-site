@@ -44,6 +44,9 @@ importers:
       kale-sc-sdk:
         specifier: file:./kale-sc-sdk
         version: file:kale-sc-sdk
+      kale-tractor-sdk:
+        specifier: file:./kale-tractor-sdk
+        version: file:kale-tractor-sdk
       passkey-kit:
         specifier: ^0.10.19
         version: 0.10.19
@@ -1299,6 +1302,9 @@ packages:
 
   kale-sc-sdk@file:kale-sc-sdk:
     resolution: {directory: kale-sc-sdk, type: directory}
+
+  kale-tractor-sdk@file:kale-tractor-sdk:
+    resolution: {directory: kale-tractor-sdk, type: directory}
 
   kleur@3.0.3:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
@@ -3537,6 +3543,13 @@ snapshots:
       - debug
 
   kale-sc-sdk@file:kale-sc-sdk:
+    dependencies:
+      '@stellar/stellar-sdk': 13.1.0
+      buffer: 6.0.3
+    transitivePeerDependencies:
+      - debug
+
+  kale-tractor-sdk@file:kale-tractor-sdk:
     dependencies:
       '@stellar/stellar-sdk': 13.1.0
       buffer: 6.0.3
