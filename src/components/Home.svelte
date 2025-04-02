@@ -5,12 +5,13 @@
         getBlock,
         getContractData,
         getIndex,
+        tractor,
         type Block,
         type Pail,
     } from "../utils/kale";
     import { doWork, loadWasm } from "../utils/wasm-miner";
     import { contractId } from "../store/contractId";
-    import { countZeros, getPails, setBlocks, getBlocks, getRandomNumber } from "../utils/base";
+    import { countZeros, getPails, setBlocks, getBlocks, getRandomNumber, getMinuteOffsetFromSecretKey, getNextTractorTime } from "../utils/base";
     import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
     import { account, kale, setLTHeaders, server } from "../utils/passkey-kit";
@@ -52,6 +53,10 @@
     let send_address: string;
     let send_amount: string;
 
+    let harvest_with_tractor = true;
+    let tractor_offset: number;
+    let next_tractor_run: number;
+
     onMount(async () => {
         loadWasm();
         index = await getIndex();
@@ -88,6 +93,10 @@
             () =>
                 getIndex().then(async (next_index) => {
                     const secret = sessionStorage.getItem(`kale:secret`);
+                    if (secret && (automated || automating) && harvest_with_tractor) {
+                        tractor_offset = getMinuteOffsetFromSecretKey(secret);
+                        next_tractor_run = getNextTractorTime(tractor_offset);
+                    }
 
                     if (next_index > index) {
                         index = next_index;
@@ -145,7 +154,7 @@
                                 pails.entries(),
                             ).filter(
                                 ([
-                                    index,
+                                    pailIndex,
                                     [
                                         planted,
                                         worked,
@@ -153,11 +162,21 @@
                                         zeros_gap,
                                         harvested,
                                     ],
-                                ]) => worked && !harvested,
+                                ]) => worked && !harvested && pailIndex < index,
                             );
 
-                            for (let harvestable of harvestables) {
-                                await harvest(harvestable[0]);
+                            if (harvest_with_tractor) {
+                                if (harvestables.length && new Date(now * 1000).getMinutes() === tractor_offset) {
+                                    await harvestWithTractor(harvestables
+                                        .map(harvestable => harvestable[0])
+                                    );
+
+                                    next_tractor_run = getNextTractorTime(tractor_offset);
+                                }
+                            } else {
+                                for (let harvestable of harvestables) {
+                                    await harvest(harvestable[0]);
+                                }
                             }
 
                             errors = 0;
@@ -297,7 +316,7 @@
 
         try {
             harvesting = true;
-            
+
             const at = await contract.harvest({
                 farmer: $contractId,
                 index,
@@ -339,8 +358,84 @@
         }
     }
 
+    async function harvestWithTractor(indexes?: number[]) {
+        if (!$contractId) return;
+
+        if (!indexes || !indexes.length) {
+            indexes = Array.from(
+                pails.entries(),
+            ).filter(
+                ([
+                    pailIndex,
+                    [
+                        planted,
+                        worked,
+                        staked,
+                        zeros_gap,
+                        harvested,
+                    ],
+                ]) => worked && !harvested && pailIndex < index,
+            ).map(p => p[0]);
+        }
+
+        if (!indexes.length) return;
+
+        try {
+            harvesting = true;
+
+            const at = await tractor.harvest({
+                farmer: $contractId,
+                pails: indexes,
+            }, {
+                timeoutInSeconds: 30,
+            });
+
+            if (Api.isSimulationError(at.simulation!)) {
+                if (
+                    at.simulation.error.includes("Error(Contract, #1)")
+                ) {
+                    console.log('No blocks requested for harvest')
+                } else if (
+                    at.simulation.error.includes("Error(Contract, #2)")
+                ) {
+                    console.log('No rewards for these blocks')
+
+                    for (let index of indexes) {
+                        localStorage.setItem(`kale:${index}:harvest`, "0");
+                    }
+                } else {
+                    // All other errors
+                    console.error("Harvest Error:", at.simulation.error);
+                }
+
+                return;
+            }
+
+            // @ts-ignore
+            await server.send(at);
+
+            console.log("Successfully harvested", at.result.reduce((acc, r) => acc += r, BigInt(0)));
+            console.log('result', at.result)
+            for (let i = 0; i < indexes.length; i++) {
+                localStorage.setItem(`kale:${indexes[i]}:harvest`, at.result[i].toString());
+            }
+
+            pails = getPails(indexes[indexes.length - 1]);
+
+            await updateContractBalance($contractId);
+
+            console.log(await getBlock(indexes[indexes.length - 1]));
+        } finally {
+            harvesting = false;
+        }
+    }
+
     async function automate() {
         const secret = sessionStorage.getItem(`kale:secret`);
+        if (secret) {
+            tractor_offset = getMinuteOffsetFromSecretKey(secret);
+            next_tractor_run = getNextTractorTime(tractor_offset);
+        }
 
         if ($keyId && automated && !secret) {
             try {
@@ -380,6 +475,9 @@
                 await server.send(at);
 
                 sessionStorage.setItem(`kale:secret`, secret);
+
+                tractor_offset = getMinuteOffsetFromSecretKey(secret);
+                next_tractor_run = getNextTractorTime(tractor_offset);
             } catch {
                 automated = false;
             } finally {
@@ -586,39 +684,70 @@
     </table>
 </div>
 
-<table class="mb-5">
-    <thead>
-        <tr class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200">
-            <th>Block</th>
-            <th>Harvest</th>
-        </tr>
-    </thead>
-    <tbody class="[&>tr>td]:whitespace-nowrap">
-        {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [planted, worked, staked, zeros_gap, harvested]] (pail_index)}
-            {#if worked && !harvested}
-                <tr
-                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
+<div class="overflow-scroll">
+    <div class="flex flex-col items-start mb-2">
+        <label class="inline-flex items-baseline mb-2">
+            <input
+                class="mr-1"
+                type="checkbox"
+                name="harvest_tractor"
+                id="harvest_tractor"
+                bind:checked={harvest_with_tractor}
+            />
+            Harvest with Tractor
+        </label>
+        {#if harvest_with_tractor}
+            <div class="flex flex-row items-start">
+                {#if automated && next_tractor_run}
+                    <span
+                        class="text-sm mr-2 font-mono bg-gray-400 text-white px-3 py-1 rounded-full"
+                        >Next Auto-Run: {new Date(next_tractor_run * 1000).toLocaleTimeString()}</span
+                    >
+                {/if}
+                <button
+                    class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                    disabled={harvesting}
+                    on:click={() => harvestWithTractor()}
+                    >{harvesting ? "Harvesting...": "Run Tractor Now"}</button
                 >
-                    <td>
-                        <div class="flex items-center">
-                            {pail_index}
-                        </div>
-                    </td>
-                    <td>
-                        <button
-                            class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
-                            on:click={() => harvest(pail_index)}
-                            disabled={harvesting || pail_index === index}
-                            >{pail_index === index
-                                ? "Waiting..."
-                                : `Harvest${harvesting ? "ing..." : ""}`}
-                        </button>
-                    </td>
-                </tr>
-            {/if}
-        {/each}
-    </tbody>
-</table>
+            </div>
+        {/if}
+    </div>
+
+    <table class="mb-5">
+        <thead>
+            <tr class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200">
+                <th>Block</th>
+                <th>Harvest</th>
+            </tr>
+        </thead>
+        <tbody class="[&>tr>td]:whitespace-nowrap">
+            {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [_planted, worked, _staked, _zeros_gap, harvested]] (pail_index)}
+                {#if worked && !harvested}
+                    <tr
+                        class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
+                    >
+                        <td>
+                            <div class="flex items-center">
+                                {pail_index}
+                            </div>
+                        </td>
+                        <td>
+                            <button
+                                class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                                on:click={() => harvest(pail_index)}
+                                disabled={harvesting || pail_index === index}
+                                >{pail_index === index
+                                    ? "Waiting..."
+                                    : `Harvest${harvesting ? "ing..." : ""}`}
+                            </button>
+                        </td>
+                    </tr>
+                {/if}
+            {/each}
+        </tbody>
+    </table>
+</div>
 
 {#if $contractId}
     <form
@@ -694,4 +823,3 @@
         href="/launchtube">Buy a Launchtube token</a
     >
 </p>
-
