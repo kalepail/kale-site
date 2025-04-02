@@ -11,7 +11,7 @@
     } from "../utils/kale";
     import { doWork, loadWasm } from "../utils/wasm-miner";
     import { contractId } from "../store/contractId";
-    import { countZeros, getPails, setBlocks, getBlocks, getRandomNumber, getMinuteOffsetFromSecretKey, getNextTractorTime } from "../utils/base";
+    import { countZeros, getPails, setBlocks, getBlocks, getRandomNumber, getMinuteOffsetFromSecretKey, getNextTractorTime, truncate } from "../utils/base";
     import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
     import { account, kale, setLTHeaders, server } from "../utils/passkey-kit";
@@ -686,18 +686,25 @@
 
 <div class="overflow-scroll">
     <div class="flex flex-col items-start mb-2">
-        <label class="inline-flex items-baseline mb-2">
-            <input
-                class="mr-1"
-                type="checkbox"
-                name="harvest_tractor"
-                id="harvest_tractor"
-                bind:checked={harvest_with_tractor}
-            />
-            Harvest with Tractor
-        </label>
+        <div class="flex flex-row items-center mb-2">
+            <label class="inline-flex items-baseline mr-2">
+                <input
+                    class="mr-1"
+                    type="checkbox"
+                    name="harvest_tractor"
+                    id="harvest_tractor"
+                    bind:checked={harvest_with_tractor}
+                />
+                Harvest with Tractor
+            </label>
+            <a
+                class="font-mono text-sm underline"
+                href="https://stellar.expert/explorer/public/contract/{tractor.options.contractId}"
+                target="_blank">{truncate(tractor.options.contractId, 4)}</a
+            >
+        </div>
         {#if harvest_with_tractor}
-            <div class="flex flex-row items-start">
+            <div class="flex flex-row items-start mb-2">
                 {#if automated && next_tractor_run}
                     <span
                         class="text-sm mr-2 font-mono bg-gray-400 text-white px-3 py-1 rounded-full"
@@ -714,7 +721,7 @@
         {/if}
     </div>
 
-    <table class="mb-5">
+    <table class="mb-2">
         <thead>
             <tr class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200">
                 <th>Block</th>
@@ -747,6 +754,13 @@
             {/each}
         </tbody>
     </table>
+    <div class="mb-5">
+        <a
+            class="font-mono text-sm underline"
+            href="https://kalefail.elliotfriend.com/tractor"
+            target="_blank">Check for missed Harvests</a
+        >
+    </div>
 </div>
 
 {#if $contractId}
