@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { AssembledTransaction, Client as ContractClient, ClientOptions as ContractClientOptions, MethodOptions } from '@stellar/stellar-sdk/contract';
+import { AssembledTransaction, Client as ContractClient, type ClientOptions as ContractClientOptions, type MethodOptions } from '@stellar/stellar-sdk/contract';
 import type { u32, i128 } from '@stellar/stellar-sdk/contract';
 export declare const Errors: {
     1: {

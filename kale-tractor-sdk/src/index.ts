@@ -2,8 +2,8 @@ import { Buffer } from "buffer";
 import {
   AssembledTransaction,
   Client as ContractClient,
-  ClientOptions as ContractClientOptions,
-  MethodOptions,
+  type ClientOptions as ContractClientOptions,
+  type MethodOptions,
   Spec as ContractSpec,
 } from '@stellar/stellar-sdk/contract';
 import type {
