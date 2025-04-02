@@ -386,6 +386,8 @@
             const at = await tractor.harvest({
                 farmer: $contractId,
                 pails: indexes,
+            }, {
+                timeoutInSeconds: 30,
             });
 
             if (Api.isSimulationError(at.simulation!)) {
