@@ -50,7 +50,6 @@ export interface Client {
      */
     simulate?: boolean;
   }) => Promise<AssembledTransaction<Array<i128>>>
-
 }
 export class Client extends ContractClient {
   static async deploy<T = Client>(
