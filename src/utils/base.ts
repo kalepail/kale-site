@@ -1,3 +1,4 @@
+import { Keypair } from "@stellar/stellar-sdk";
 import type { Block } from "./kale";
 
 export function truncate(str: string, length: number = 5) {
@@ -84,8 +85,8 @@ function processStorage(
         string | 'NaN' | null,
         [number | 'NaN', number | 'NaN'] | null,
         string | 'NaN' | null
-    ]>, 
-    storage: Storage, 
+    ]>,
+    storage: Storage,
     curr_index?: number
 ) {
     Object.keys(storage).sort().forEach((key) => {
@@ -120,4 +121,23 @@ function processStorage(
             }
         }
     });
+}
+
+export function getMinuteOffsetFromSecretKey(secret: string): number {
+    const kp = Keypair.fromSecret(secret);
+    return kp.signatureHint().readUInt32LE() % 60;
+}
+
+export function getNextTractorTime(minutes: number): number {
+    let time = new Date(Date.now());
+
+    if (minutes <= time.getMinutes()) {
+        // this hour's minute offset has passed, so increase the hour by 1.
+        time.setHours(time.getHours() + 1);
+    }
+
+    time.setMinutes(minutes);
+    time.setSeconds(0);
+
+    return Math.floor(time.valueOf() / 1000);
 }
