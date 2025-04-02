@@ -698,7 +698,7 @@
         </label>
         {#if harvest_with_tractor}
             <div class="flex flex-row items-start">
-                {#if next_tractor_run}
+                {#if automated && next_tractor_run}
                     <span
                         class="text-sm mr-2 font-mono bg-gray-400 text-white px-3 py-1 rounded-full"
                         >Next Auto-Run: {new Date(next_tractor_run * 1000).toLocaleTimeString()}</span
