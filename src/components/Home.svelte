@@ -93,7 +93,7 @@
             () =>
                 getIndex().then(async (next_index) => {
                     const secret = sessionStorage.getItem(`kale:secret`);
-                    if (secret) {
+                    if (secret && (automated || automating) && harvest_with_tractor) {
                         tractor_offset = getMinuteOffsetFromSecretKey(secret);
                         next_tractor_run = getNextTractorTime(tractor_offset);
                     }
@@ -696,12 +696,14 @@
             />
             Harvest with Tractor
         </label>
-        {#if harvest_with_tractor && next_tractor_run}
+        {#if harvest_with_tractor}
             <div class="flex flex-row items-start">
-                <span
-                    class="text-sm mr-2 font-mono bg-gray-400 text-white px-3 py-1 rounded-full"
-                    >Next Run: {new Date(next_tractor_run * 1000).toLocaleTimeString()}</span
-                >
+                {#if next_tractor_run}
+                    <span
+                        class="text-sm mr-2 font-mono bg-gray-400 text-white px-3 py-1 rounded-full"
+                        >Next Auto-Run: {new Date(next_tractor_run * 1000).toLocaleTimeString()}</span
+                    >
+                {/if}
                 <button
                     class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
                     disabled={harvesting}
