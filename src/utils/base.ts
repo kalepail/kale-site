@@ -131,7 +131,7 @@ export function getMinuteOffsetFromSecretKey(secret: string): number {
 export function getNextTractorTime(minutes: number): number {
     let time = new Date(Date.now());
 
-    if (minutes <= time.getMinutes()) {
+    if (minutes < time.getMinutes()) {
         // this hour's minute offset has passed, so increase the hour by 1.
         time.setHours(time.getHours() + 1);
     }
