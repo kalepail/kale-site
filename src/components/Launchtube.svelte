@@ -7,7 +7,7 @@
     import { Api } from "@stellar/stellar-sdk/minimal/rpc";
     import copy from 'copy-to-clipboard';
 
-    const KALE_TO_XLM_FACTOR = 50;
+    const KALE_TO_XLM_FACTOR = 25;
     const KALE_WORKER_URL = 'https://kale-worker.sdf-ecosystem.workers.dev';
 
     let amount = 100;
@@ -18,6 +18,8 @@
 
     async function handleSubmit(event: Event) {
         if (!$contractId || !$keyId) return;
+
+        lt_jwt = null;
 
         const tx_token = await fetch(`${KALE_WORKER_URL}/token`, {
             method: 'POST',
