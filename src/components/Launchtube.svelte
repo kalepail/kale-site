@@ -6,6 +6,7 @@
     import { Networks, Operation, Transaction } from "@stellar/stellar-sdk/minimal";
     import { Api } from "@stellar/stellar-sdk/minimal/rpc";
     import copy from 'copy-to-clipboard';
+    import { updateContractBalance } from "../store/contractBalance";
 
     const KALE_TO_XLM_FACTOR = 10;
     const KALE_WORKER_URL = 'https://kale-worker.sdf-ecosystem.workers.dev';
@@ -80,6 +81,8 @@
         }
 
         console.log(lt_jwt);
+
+        await updateContractBalance($contractId);
     }
     function clampAmount() {
         if (amount < 10) amount = 10;
