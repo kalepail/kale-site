@@ -7,7 +7,7 @@
     import { Api } from "@stellar/stellar-sdk/minimal/rpc";
     import copy from 'copy-to-clipboard';
 
-    const KALE_TO_XLM_FACTOR = 25;
+    const KALE_TO_XLM_FACTOR = 10;
     const KALE_WORKER_URL = 'https://kale-worker.sdf-ecosystem.workers.dev';
 
     let amount = 100;
