@@ -67,7 +67,7 @@ pub extern "C" fn debug_balances() {
 
                         match entry.val {
                             ScVal::Map(Some(m)) => {
-                                for ScMapEntry { key, val } in m.0.iter() {
+                                for ScMapEntry { key, val } in m.iter() {
                                     match env.try_from_scval::<Symbol>(key) {
                                         Ok(key) => {
                                             if key == symbol_short!("amount") {
@@ -86,7 +86,9 @@ pub extern "C" fn debug_balances() {
 
                 if address.is_some() && balance.is_some() {
                     balances.push(Balance {
-                        address: address_to_alloc_string(&env, env.from_scval(&address.unwrap())),
+                        // address: address.unwrap(),
+                        // balance: balance.unwrap(),
+                        address: address.unwrap().to_xdr_base64(Limits::none()).unwrap(), // address_to_alloc_string(&env, env.from_scval(&address.unwrap())),
                         balance: balance.unwrap().to_xdr_base64(Limits::none()).unwrap(),
                     });
                 }
