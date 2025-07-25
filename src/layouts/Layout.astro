@@ -6,6 +6,7 @@ interface Props {
 const { title } = Astro.props;
 
 import "../styles/global.css";
+import DomainAlert from "../components/DomainAlert.svelte";
 ---
 
 <!doctype html>
@@ -32,6 +33,7 @@ import "../styles/global.css";
 		<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" is:inline></script>
 	</head>
 	<body>
+		<DomainAlert client:only="svelte" />
 		<slot />
 
 		<div class="cf-turnstile"></div>
