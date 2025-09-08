@@ -8,8 +8,8 @@ make build
 
 Run the site
 ```bash
-pnpm i
-pnpm start
+npm install
+npm start
 ```
 
 ### Attribution
