@@ -7,6 +7,8 @@ const { title } = Astro.props;
 
 import "../styles/global.css";
 import DomainAlert from "../components/DomainAlert.svelte";
+import ExplosionAnimation from "../components/ExplosionAnimation.svelte";
+import Footer from "../components/Footer.svelte";
 ---
 
 <!doctype html>
@@ -34,7 +36,9 @@ import DomainAlert from "../components/DomainAlert.svelte";
 	</head>
 	<body>
 		<DomainAlert client:only="svelte" />
+		<ExplosionAnimation client:only="svelte" />
 		<slot />
+		<Footer client:only="svelte" />
 
 		<div class="cf-turnstile"></div>
 

@@ -5,8 +5,11 @@ import Home from '../components/Home.svelte';
 ---
 
 <Layout title="KALE 🥬">
-	<main class="p-2 overflow-hidden">
+	<main class="p-2">
 		<Header client:only="svelte" />
-		<Home client:only="svelte" />
+			<div class="p-6">
+				<Home client:only="svelte" />
+			</div>
+		</div>
 	</main>
 </Layout>

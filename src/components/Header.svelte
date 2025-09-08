@@ -10,8 +10,16 @@
     } from "../store/contractBalance";
     import { turnstileToken } from "../store/turnstileToken";
     import copy from 'copy-to-clipboard'
+    import { triggerExplosion } from '../store/animations';
 
     let creating = false;
+    let animationEnabled = true;
+    
+    function handleGlobalClick(event: MouseEvent) {
+        if (animationEnabled) {
+            triggerExplosion(event.clientX, event.clientY);
+        }
+    }
 
     onMount(async () => {
         if ($keyId) {
@@ -22,6 +30,13 @@
 
             contractId.set(cid);
         }
+        
+        // Add global click listener
+        document.addEventListener('click', handleGlobalClick);
+        
+        return () => {
+            document.removeEventListener('click', handleGlobalClick);
+        };
     });
 
     turnstileToken.subscribe((token) => {
@@ -97,46 +112,91 @@
     }
 </script>
 
-<header class="flex items-center flex-wrap mb-2">
-    <h1 class="flex items-center text-xl mr-auto">
-        <a href="/"><strong>KALE</strong> 🥬</a>
-    </h1>
+<header class="bg-white/95 backdrop-blur border-b border-green-200 sticky top-0 z-40 mb-6">
+    <div class="px-6 py-4">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-3xl font-bold text-green-800 flex items-center gap-2">
+                <a href="/" class="hover:text-green-600 transition-colors">
+                    KALE
+                </a>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                        class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                        type="checkbox"
+                        bind:checked={animationEnabled}
+                        title={animationEnabled ? "Disable cool mode" : "Enable cool mode"}
+                    />
+                    <span class="text-sm font-medium text-gray-600 flex items-center gap-1">
+                        {animationEnabled ? "🎆" : "🎇"}
+                        Cool mode
+                    </span>
+                </label>
+            </h1>
+            
+            {#if $contractId}
+                <div class="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-full font-bold">
+                    <span>{Number($contractBalance ?? 0) / 1e7} KALE</span>
+                </div>
+            {/if}
+        </div>
+        
+        <div class="flex items-center justify-between">
+            <nav class="flex items-center gap-6">
+                <a href="/" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                    Home
+                </a>
+                <a href="/demo" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                    Demo
+                </a>
+                <a href="/leaderboard" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                    Leaderboard
+                </a>
+                <a href="/about" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                    About
+                </a>
+                <a href="/chat" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                    Chat
+                </a>
+            </nav>
 
-    <div class="[&>a]:underline ml-auto pl-2">
-        <a href="/leaderboard">Leaderboard</a>
-        <span class="mx-1">|</span>
-        <a href="/about">About</a>
-        <!-- <span class="mx-1">|</span>
-        <a href="/launchtube">Launchtube</a> -->
-        <span class="mx-1">|</span>
-        <a href="/chat">Chat</a>
-        <span class="mx-1">|</span>
-        <a href="https://kalepail.com/kale" target="_blank">Lore</a>
-    </div>
-
-    <div class="flex items-center ml-auto pl-2">
-        {#if $contractId}
-            <a
-                class="mr-2 font-mono text-sm underline"
-                href="https://stellar.expert/explorer/public/contract/{$contractId}"
-                target="_blank">{truncate($contractId, 4)}</a
-            >
-            <button class="mr-2 text-xl" on:click={copyContractId}>⧉</button>
-            <span
-                class="bg-green-700 text-white px-3 py-1 rounded-full font-mono text-sm"
-                >{Number($contractBalance ?? 0) / 1e7} KALE</span
-            >
-            <button class="text-white bg-black px-2 py-1 ml-2" on:click={logout}
-                >Logout</button
-            >
-        {:else}
-            <button class="underline mr-2" on:click={login}>Login</button>
-            <button
-                class="text-white bg-black px-2 py-1 disabled:bg-gray-400"
-                on:click={signUp}
-                disabled={creating}
-                >{creating ? "Creating..." : "Create New Account"}</button
-            >
-        {/if}
+            <div class="flex items-center gap-3">
+                {#if $contractId}
+                    <a
+                        class="font-mono text-sm text-green-600 hover:text-green-800 underline"
+                        href="https://stellar.expert/explorer/public/contract/{$contractId}"
+                        target="_blank"
+                    >
+                        {truncate($contractId, 4)}
+                    </a>
+                    <button 
+                        class="text-green-600 hover:text-green-800 text-sm font-medium transition-colors" 
+                        on:click={copyContractId}
+                        title="Copy Contract ID"
+                    >
+                        Copy
+                    </button>
+                    <button 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" 
+                        on:click={logout}
+                    >
+                        Logout
+                    </button>
+                {:else}
+                    <button 
+                        class="text-green-700 hover:text-green-600 font-medium transition-colors" 
+                        on:click={login}
+                    >
+                        Login
+                    </button>
+                    <button
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:bg-gray-400"
+                        on:click={signUp}
+                        disabled={creating}
+                    >
+                        {creating ? "Creating..." : "Create New Account"}
+                    </button>
+                {/if}
+            </div>
+        </div>
     </div>
 </header>

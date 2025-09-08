@@ -22,6 +22,10 @@
     } from "../store/contractBalance";
     import { SignerStore, type SignerLimits } from "passkey-kit";
     import { turnstileToken } from "../store/turnstileToken";
+    import FarmPlot from "./FarmPlot.svelte";
+    import TransferKale from "./TransferKale.svelte";
+    import MusicPlayer from "./MusicPlayer.svelte";
+    import Notification from "./Notification.svelte";
 
     let interval: NodeJS.Timeout;
 
@@ -56,6 +60,13 @@
     let harvest_with_tractor = true;
     let tractor_offset: number;
     let next_tractor_run: number;
+    
+    // Notification system
+    let showNotification = false;
+    let notificationMessage = "";
+    let notificationType: "success" | "error" | "info" = "info";
+    let showAdvancedSettings = false;
+    let farmPlotRef;
 
     onMount(async () => {
         loadWasm();
@@ -241,6 +252,7 @@
             console.log("Successfully planted", amount);
             localStorage.setItem(`kale:${i ?? index}:plant`, amount.toString());
             pails = getPails();
+            showNotificationMessage(`Successfully planted ${Number(amount) / 1e7} KALE! `, "success");
 
             await updateContractBalance($contractId);
         } finally {
@@ -306,6 +318,7 @@
                 `[${countZeros(local_hash)},${at.result}]`,
             );
             pails = getPails();
+            showNotificationMessage(`Successfully worked! ${countZeros(local_hash)} zeros found! ⚡`, "success");
         } finally {
             working = false;
         }
@@ -349,6 +362,7 @@
             console.log("Successfully harvested", at.result);
             localStorage.setItem(`kale:${index}:harvest`, at.result.toString());
             pails = getPails(index);
+            showNotificationMessage(`Successfully harvested ${Number(at.result) / 1e7} KALE! 🥬`, "success");
 
             await updateContractBalance($contractId);
 
@@ -382,6 +396,11 @@
 
         try {
             harvesting = true;
+            
+            // Show tractor animation
+            if (farmPlotRef) {
+                farmPlotRef.showTractor();
+            }
 
             const at = await tractor.harvest({
                 farmer: $contractId,
@@ -503,6 +522,7 @@
             await server.send(at);
 
             await updateContractBalance($contractId);
+            showNotificationMessage(`Successfully transferred ${send_amount} KALE! 🚀`, "success");
 
             send_amount = "";
         } finally {
@@ -518,308 +538,156 @@
 
         return `${minutes}m ${seconds}s`;
     }
+    
+    function showNotificationMessage(message: string, type: "success" | "error" | "info" = "info") {
+        notificationMessage = message;
+        notificationType = type;
+        showNotification = true;
+    }
 </script>
 
+<!-- Advanced Settings Button -->
 {#if $contractId}
-    <div class="flex flex-col items-start">
-        <label class="inline-flex items-baseline mb-2">
-            <input
-                class="mr-1"
-                type="checkbox"
-                name="automate"
-                id="automate"
-                bind:checked={automated}
-                on:change={automate}
-            />
-            Automat{automating ? "ing..." : automated ? "ed" : "e"}
-            <aside class="ml-1 text-xs font-mono">({errors} Errors)</aside>
-        </label>
-
-        <label class="inline-flex items-center mb-2 tabular-nums">
-            <aside on:click={() => (stake = Math.max(stake - 1, 0))}>
-                Stake %
-            </aside>
-            <input
-                class="mx-2"
-                type="range"
-                name="stake"
-                id="stake"
-                min="0"
-                max="100"
-                bind:value={stake}
-            />
-            <aside on:click={() => (stake = Math.min(stake + 1, 100))}>
-                {stake}%
-            </aside>
-            <span
-                class="text-sm ml-2 font-mono bg-green-700 text-white px-3 py-1 rounded-full"
-                >{Number(
-                    (
-                        ((Number($contractBalance) || 0) * (stake / 100)) /
-                        1e7
-                    ).toFixed(7),
-                )} KALE</span
-            >
-        </label>
+    <div class="flex justify-center mb-6">
+        <button
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+            on:click={() => showAdvancedSettings = !showAdvancedSettings}
+        >
+            <span>⚙️</span>
+            <span>{showAdvancedSettings ? 'Hide' : 'Show'} Advanced Settings</span>
+        </button>
     </div>
 {/if}
 
-<div class="overflow-scroll">
-    <table class="mb-5">
-        <thead>
-            <tr
-                class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200"
-            >
-                <th>Block</th>
-                <th>Timer</th>
-                <th>Plant</th>
-                <th>Work</th>
-                <th>Harvest</th>
-            </tr>
-        </thead>
-        <tbody class="[&>tr>td]:whitespace-nowrap">
-            <!-- Preemptive Plant -->
-            {#if block?.timestamp && BigInt(Math.floor(Date.now() / 1000) >= block.timestamp + BigInt(60 * 5))}
-                <tr
-                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
-                >
-                    <td colspan="2"></td>
-                    <td>
-                        <button
-                            class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
-                            on:click={() => plant(index + 1)}
-                            disabled={planting}
-                            >Plant{planting ? "ing..." : ""}</button
-                        >
-                    </td>
-                    <td colspan="2"></td>
-                </tr>
-            {/if}
+<!-- Advanced Settings Panel -->
+{#if showAdvancedSettings && $contractId}
+    <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-6 mb-6">
+        <h2 class="text-xl font-bold text-green-700 mb-4">Advanced Settings</h2>
+        
+        <div class="space-y-4">
+            <label class="flex items-center gap-3">
+                <input
+                    class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                    type="checkbox"
+                    name="automate"
+                    id="automate"
+                    bind:checked={automated}
+                    on:change={automate}
+                />
+                <span class="text-sm font-medium text-gray-700">
+                    Automation {automating ? "Activating..." : automated ? "Active" : "Disabled"}
+                </span>
+                <span class="text-xs font-mono text-gray-500">({errors} Erros)</span>
+            </label>
+        </div>
+    </div>
+{/if}
 
-            <!-- Normal Plant -->
-            {#each Array.from(blocks).sort(([index_a], [index_b]) => index_b - index_a) as [block_index, block], i (block_index)}
-                <tr
-                    class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
-                >
-                    <td>
-                        <div class="flex items-center">
-                            {#if i === 0}
-                                <span class="text-xs mr-2">🔴</span>
-                            {/if}
-                            {block_index}
-                        </div>
-                    </td>
-                    <td>
-                        {#if block}
-                            {#if block.timestamp}
-                                {countdown(block.timestamp)}
-                            {/if}
-                        {/if}
-                    </td>
-                    <td>
-                        {#if i === 0}
-                            <button
-                                class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
-                                on:click={() => plant()}
-                                disabled={planting ||
-                                    pails.get(block_index)?.[0]}
-                            >
-                                Plant{planting ? "ing..." : ""}
-                            </button>
-                        {/if}
-                        {#if pails.get(block_index)?.[2]}
-                            <aside
-                                class="text-xs border px-2 py-1 rounded-full {i ===
-                                    0 && 'mt-1'}"
-                            >
-                                {Number(
-                                    (
-                                        Number(pails.get(block_index)?.[2]) /
-                                        1e7
-                                    ).toFixed(7),
-                                )} Stake
-                            </aside>
-                        {/if}
-                    </td>
-                    <td>
-                        {#if i === 0}
-                            <button
-                                class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
-                                on:click={work}
-                                disabled={working ||
-                                    !pails.get(block_index)?.[0] ||
-                                    pails.get(block_index)?.[1]}
-                            >
-                                Work{working ? "ing..." : ""}
-                            </button>
-                        {/if}
-                        {#if pails.get(block_index)?.[3]}
-                            <aside
-                                class="text-xs border px-2 py-1 rounded-full {i ===
-                                    0 && 'mt-1'}"
-                            >
-                                {pails.get(block_index)?.[3]?.[0]} Zeros,
-                                {pails.get(block_index)?.[3]?.[1]} Gap
-                            </aside>
-                        {/if}
-                    </td>
-                    <td>
-                        {#if i > 0 && pails.get(block_index)?.[4]}
-                            <aside
-                                class="text-xs bg-green-700 text-white px-2 py-1 rounded-full {i ===
-                                    0 && 'mt-1'}"
-                            >
-                                {Number(
-                                    (
-                                        Number(pails.get(block_index)?.[4]) /
-                                        1e7
-                                    ).toFixed(7),
-                                )} KALE
-                            </aside>
-                        {/if}
-                    </td>
-                </tr>
-            {/each}
-        </tbody>
-    </table>
-</div>
+<FarmPlot 
+    bind:this={farmPlotRef}
+    {blocks}
+    {pails}
+    {planting}
+    {working}
+    onPlant={() => plant()}
+    onWork={work}
+    onHarvest={harvest}
+    {countdown}
+    contractBalance={$contractBalance}
+    {stake}
+    onStakeChange={(value) => stake = value}
+    isLoggedIn={!!$contractId}
+    harvestWithTractor={harvest_with_tractor}
+    {automated}
+    {automating}
+    {errors}
+    nextTractorRun={next_tractor_run}
+    onAutomate={automate}
+/>
 
-<div class="overflow-scroll">
-    <div class="flex flex-col items-start mb-2">
-        <label class="inline-flex items-baseline mb-2">
-            <input
-                class="mr-1"
-                type="checkbox"
-                name="harvest_tractor"
-                id="harvest_tractor"
-                bind:checked={harvest_with_tractor}
-            />
-            Harvest with Tractor
-        </label>
-        {#if harvest_with_tractor}
-            <div class="flex flex-row items-start">
-                {#if automated && next_tractor_run}
-                    <span
-                        class="text-sm mr-2 font-mono bg-gray-400 text-white px-3 py-1 rounded-full"
-                        >Next Auto-Run: {new Date(next_tractor_run * 1000).toLocaleTimeString()}</span
-                    >
+<!-- Main Actions Section -->
+<div class="mt-8 space-y-6">
+    <!-- Quick Actions -->
+    <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-6">
+        <h2 class="text-xl font-bold text-green-700 mb-4">Quick Actions</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Harvest Settings -->
+            <div class="space-y-3">
+                <label class="flex items-center gap-3">
+                    <input
+                        class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                        type="checkbox"
+                        name="harvest_tractor"
+                        id="harvest_tractor"
+                        bind:checked={harvest_with_tractor}
+                    />
+                    <span class="text-sm font-medium text-gray-700">Use Tractor for Harvest</span>
+                </label>
+                
+                {#if harvest_with_tractor && automated && next_tractor_run}
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <div class="text-sm text-blue-700">Next Automatic Execution:</div>
+                        <div class="font-mono text-blue-800">{new Date(next_tractor_run * 1000).toLocaleTimeString()}</div>
+                    </div>
                 {/if}
+                
                 <button
-                    class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium disabled:bg-gray-400 transition-colors"
                     disabled={harvesting}
                     on:click={() => harvestWithTractor()}
-                    >{harvesting ? "Harvesting...": "Run Tractor Now"}</button
                 >
+                    {harvesting ? "Harvesting..." : harvest_with_tractor ? "Collect with Tractor" : "Collect"}
+                </button>
             </div>
-        {/if}
+            
+            <!-- Transfer Section -->
+            {#if $contractId}
+                <div>
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Transferir KALE</h3>
+                    <TransferKale 
+                        contractBalance={$contractBalance}
+                        {transferring}
+                        onTransfer={transfer}
+                    />
+                </div>
+            {/if}
+        </div>
     </div>
-
-    <table class="mb-5">
-        <thead>
-            <tr class="text-left [&>th]:px-2 [&>th]:border [&>th]:border-gray-200">
-                <th>Block</th>
-                <th>Harvest</th>
-            </tr>
-        </thead>
-        <tbody class="[&>tr>td]:whitespace-nowrap">
-            {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [_planted, worked, _staked, _zeros_gap, harvested]] (pail_index)}
-                {#if worked && !harvested}
-                    <tr
-                        class="[&>td]:px-2 [&>td]:py-1 [&>td]:border [&>td]:font-mono [&>td]:border-gray-200"
-                    >
-                        <td>
-                            <div class="flex items-center">
-                                {pail_index}
+    
+    <!-- Harvestable Pails -->
+    {#if Array.from(pails).some(([_, pail]) => pail[1] && !pail[4])}
+        <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Ready to Harvest</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [_planted, worked, _staked, _zeros_gap, harvested]] (pail_index)}
+                    {#if worked && !harvested}
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-mono text-sm font-bold">Lot {pail_index}</div>
+                                    <div class="text-xs text-gray-600">Ready to harvest</div>
+                                </div>
+                                <button
+                                    class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm font-medium disabled:bg-gray-400 transition-colors"
+                                    on:click={() => harvest(pail_index)}
+                                    disabled={harvesting || pail_index === index}
+                                >
+                                    {pail_index === index ? "Waiting..." : harvesting ? "Harvesting..." : "Harvest"}
+                                </button>
                             </div>
-                        </td>
-                        <td>
-                            <button
-                                class="bg-black text-white px-2 py-1 text-sm disabled:bg-gray-400"
-                                on:click={() => harvest(pail_index)}
-                                disabled={harvesting || pail_index === index}
-                                >{pail_index === index
-                                    ? "Waiting..."
-                                    : `Harvest${harvesting ? "ing..." : ""}`}
-                            </button>
-                        </td>
-                    </tr>
-                {/if}
-            {/each}
-        </tbody>
-    </table>
+                        </div>
+                    {/if}
+                {/each}
+            </div>
+        </div>
+    {/if}
+    
 </div>
 
-{#if $contractId}
-    <form
-        class="bg-gray-200 p-2 rounded flex flex-wrap items-center"
-        on:submit|preventDefault={transfer}
-    >
-        <span class="w-full">Transfer KALE</span>
-        <input
-            class="mr-2 my-2 font-mono text-sm px-2 py-1 min-w-[300px] bg-white"
-            type="text"
-            name="address"
-            id="address"
-            placeholder="Address to send the KALE to"
-            bind:value={send_address}
-        />
-        <input
-            class="mr-2 my-2 font-mono text-sm px-2 py-1 max-w-[180px] bg-white"
-            type="text"
-            name="amount"
-            id="amount"
-            placeholder="Amount to send"
-            bind:value={send_amount}
-        />
-        <button
-            class="bg-black text-white px-2 py-1 text-sm font-mono disabled:bg-gray-400"
-            type="submit"
-            disabled={transferring}>Send{transferring ? "ing..." : ""}</button
-        >
-    </form>
-{/if}
-
-<aside class="text-xs mt-5 mb-1">Play (then mute if you want) to help keep this tab active</aside>
-<audio class="mb-2" controls loop>
-    <source
-        type="audio/mpeg"
-        src="kale-farmer-song.mp3"
-    /> Your browser does not support the audio element.</audio
->
-
-<p class="mt-10">
-    Learn more about <a
-        class="underline text-blue-600"
-        href="https://github.com/kalepail/KALE-sc"
-        target="_blank">The KALEpail Project</a
-    >
-</p>
-
-<p class="mt-2">
-    View the <a
-        class="underline text-blue-600"
-        href="https://github.com/kalepail/KALE-site"
-        target="_blank">code for this site</a
-    >
-</p>
-
-<p class="mt-2">
-    <a
-        class="underline text-blue-600"
-        href="/upgrade">Upgrade your wallet</a
-    >
-</p>
-
-<!-- <p class="mt-2">
-    <a
-        class="underline text-blue-600"
-        href="/verify">Verify your account</a
-    >
-</p> -->
-
-<p class="mt-2">
-    <a
-        class="underline text-blue-600"
-        href="/launchtube">Buy a Launchtube token</a
-    >
-</p>
+<!-- Notification Component -->
+<Notification 
+    bind:show={showNotification}
+    message={notificationMessage}
+    type={notificationType}
+/>

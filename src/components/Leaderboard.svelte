@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { truncate } from "../utils/base";
     import { contractId } from "../store/contractId";
+    import Card from './ui/Card.svelte';
 
     let leaderboard: {
         balance_holder: string;
@@ -23,49 +24,66 @@
 
     function sanitizeAmount(amount: string) {
         const num = Number(amount);
-        // Format with 2 decimal places
-        const formatted = num.toLocaleString(undefined, { 
+        return num.toLocaleString(undefined, { 
             minimumFractionDigits: 2, 
             maximumFractionDigits: 2 
         });
-        // Add padding to align numbers (100M would be 9 digits + commas + decimals)
-        // Example: "100,000,000.00" is 14 characters
-        return formatted.padStart(14, '_');
     }
 </script>
 
-<h1 class="text-xl font-bold mb-2">
-    Leaderboard <span class="text-sm">({leaderboard.length})</span>
-</h1>
-
-<ul class="text-sm sm:text-base">
-    {#each leaderboard as { balance_holder, balance_amount }, i}
-        <!-- {#if Number(balance_amount) > 0 && i < 100} -->
-        <li class="font-mono odd:bg-slate-100 {i < 10 && 'font-bold py-1'} {i < 3 && 'py-2'} {i === 0 ? '!bg-amber-400/50' : i === 1 ? '!bg-slate-400/50' : i === 2 ? '!bg-yellow-800/50' : ''} {(i === 9 || i == 99) && 'border-b'}">
-            {#if i === 0}
-                &nbsp;🥇&nbsp;
-            {:else if i == 1}
-                &nbsp;🥈&nbsp;
-            {:else if i == 2}
-                &nbsp;🥉&nbsp;
-            {:else if i < 9}
-                &nbsp;&nbsp;{i + 1}.
-            {:else if i < 99}
-                &nbsp;{i + 1}.
-            {:else}
-                {i + 1}.
-            {/if}
-            <a
-                class="underline"
-                href={`https://stellar.expert/explorer/public/${balance_holder[0] === "G" ? "account" : "contract"}/${balance_holder}`}
-                target="_blank">{truncate(balance_holder, 7)}</a
-            >
-            : { sanitizeAmount(balance_amount) }
-
-            {#if balance_holder === $contractId}
-                {balance_holder === $contractId ? "🫵" : ""}
-            {/if}
-        </li>
-        <!-- {/if} -->
-    {/each}
-</ul>
+<Card className="p-8">
+    <div class="text-center">
+        <div class="text-6xl mb-4">🏆</div>
+        <h1 class="text-3xl font-bold text-green-700 mb-2">Leaderboard</h1>
+        <p class="text-green-600 mb-8">Top community farmers ({leaderboard.length})</p>
+        
+        <div class="space-y-4 max-w-2xl mx-auto">
+            {#each leaderboard as { balance_holder, balance_amount }, i}
+                <div 
+                    class="flex items-center justify-between p-4 rounded-lg transition-all duration-200 hover:shadow-md {
+                        balance_holder === $contractId ? 'bg-green-100 border-2 border-green-300 shadow-md' : 
+                        i < 3 ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200' : 
+                        'bg-gray-50 border border-gray-200'
+                    }"
+                >
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">
+                            {#if i === 0}
+                                🥇
+                            {:else if i === 1}
+                                🥈
+                            {:else if i === 2}
+                                🥉
+                            {:else}
+                                #{i + 1}
+                            {/if}
+                        </span>
+                        <div class="text-left">
+                            <div class="font-bold text-gray-800">
+                                {truncate(balance_holder, 7)}
+                                {#if balance_holder === $contractId}
+                                    <span class="ml-2 text-lg">🫵</span>
+                                {/if}
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                <a
+                                    class="underline hover:text-green-600"
+                                    href={`https://stellar.expert/explorer/public/${balance_holder[0] === "G" ? "account" : "contract"}/${balance_holder}`}
+                                    target="_blank"
+                                >
+                                    View on Stellar Expert
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-green-600 text-lg">
+                            {sanitizeAmount(balance_amount)}
+                        </div>
+                        <div class="text-sm text-gray-500">KALE</div>
+                    </div>
+                </div>
+            {/each}
+        </div>
+    </div>
+</Card>

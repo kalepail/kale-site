@@ -5,8 +5,11 @@ import Leaderboard from '../../components/Leaderboard.svelte';
 ---
 
 <Layout title="KALE 🥬 / Leaderboard">
-	<main class="p-2 overflow-hidden">
+	<main class="p-2">
 		<Header client:only="svelte" />
-		<Leaderboard client:only="svelte" />
+			<div class="p-6">
+				<Leaderboard client:only="svelte" />
+			</div>
+		</div>
 	</main>
 </Layout>

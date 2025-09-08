@@ -37,6 +37,7 @@
     let msgs: Event[] = [];
 
     let sending: boolean = false;
+    let chatContainer: HTMLDivElement;
 
     onMount(async () => {
         await getMsgs();
@@ -78,6 +79,8 @@
         msgs = msgs.sort(
             (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
         );
+        
+        scrollToBottom();
     }
 
     async function getEvents(limit: number | string, found: boolean = false) {
@@ -156,6 +159,14 @@
         );
     }
 
+    function scrollToBottom() {
+        setTimeout(() => {
+            if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }, 100);
+    }
+
     async function send() {
         if (!$contractId || !$keyId) return;
 
@@ -175,64 +186,102 @@
 
             await updateContractBalance($contractId);
 
-            msg = ''
+            msg = '';
+            scrollToBottom();
         } finally {
             sending = false;
         }
     }
 </script>
 
-<div class="flex flex-col min-w-full items-center pb-5">
-    <div>
-        <ul class="max-w-[350px]">
+<div class="max-w-4xl mx-auto">
+    <!-- Chat Header -->
+    <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-6 mb-6">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-green-700 mb-2">KALE Community Chat</h1>
+            <p class="text-green-600">Chat with other farmers and share your experiences!</p>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl overflow-hidden">
+        <!-- Messages Area -->
+        <div class="h-96 overflow-y-auto p-6 space-y-4" id="chat-messages" bind:this={chatContainer}>
             {#each msgs as event}
-                <li class="mb-2">
-                    <span
-                        class="text-mono text-sm bg-black rounded-t-lg text-white px-3 py-1"
-                    >
-                        <a
-                            class="underline"
-                            target="_blank"
-                            href="https://stellar.expert/explorer/public/tx/{event.txHash}"
-                            >{truncate(event.addr, 4)}</a
-                        >
-                        &nbsp; &nbsp;
-                        <time
-                            class="text-xs text-gray-400"
-                            datetime={event.timestamp.toUTCString()}
-                        >
-                            {event.timestamp.toLocaleTimeString()}
-                        </time>
-                    </span>
-                    <p
-                        class="min-w-[220px] text-pretty break-words bg-gray-200 px-3 py-1 rounded-b-lg rounded-tr-lg border border-gray-400"
-                    >
-                        {event.msg}
-                    </p>
-                </li>
+                <div class="flex {event.addr === $contractId ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="flex items-center gap-2 mb-1 {event.addr === $contractId ? 'justify-end' : 'justify-start'}">
+                            <a
+                                class="text-xs font-mono text-green-600 hover:text-green-800 underline"
+                                target="_blank"
+                                href="https://stellar.expert/explorer/public/tx/{event.txHash}"
+                            >
+                                {truncate(event.addr, 4)}
+                            </a>
+                            <time
+                                class="text-xs text-gray-500"
+                                datetime={event.timestamp.toUTCString()}
+                            >
+                                {event.timestamp.toLocaleTimeString()}
+                            </time>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg px-4 py-2 {event.addr === $contractId ? 'bg-green-100' : ''}">
+                            <p class="text-sm text-gray-800 break-words">{event.msg}</p>
+                        </div>
+                    </div>
+                </div>
             {/each}
-        </ul>
+        </div>
 
-        <form class="flex flex-col mt-5" on:submit|preventDefault={send}>
-            <textarea
-                class="border px-3 py-1 mb-2 border-gray-400 rounded-lg"
-                rows="4"
-                name="msg"
-                id="msg"
-                placeholder="Type your message..."
-                bind:value={msg}
-            ></textarea>
-
-            <div class="flex items-center ml-auto">
-                <span class="text-gray-400 font-mono text-sm mr-2">
-                    {(msg.length / 1e7).toFixed(7)} KALE
-                </span>
-                <button
-                    class="bg-black text-white px-2 py-1 text-sm font-mono disabled:bg-gray-400"
-                    type="submit"
-                    disabled={sending}>Send{sending ? "ing..." : ""}</button
-                >
+        <!-- Message Input -->
+        {#if $contractId}
+            <div class="border-t border-green-200 p-4">
+                <form on:submit|preventDefault={send} class="space-y-3">
+                    <div>
+                        <textarea
+                            class="w-full px-4 py-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                            rows="3"
+                            name="msg"
+                            id="msg"
+                            placeholder="Digite sua mensagem..."
+                            bind:value={msg}
+                            disabled={sending}
+                        ></textarea>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-500">
+                            <span class="font-mono">{(msg.length / 1e7).toFixed(7)} KALE</span>
+                        </div>
+                        
+                        <button
+                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium disabled:bg-gray-400 transition-colors flex items-center gap-2"
+                            type="submit"
+                            disabled={sending || !msg.trim()}
+                        >
+                            {#if sending}
+                                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Enviando...
+                            {:else}
+                                Enviar
+                            {/if}
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
+        {:else}
+            <div class="border-t border-green-200 p-6 text-center">
+                <div class="text-gray-500 mb-4">
+                    <p class="text-lg font-medium">Please login to participate in the chat</p>
+                    <p class="text-sm">Connect to chat with other farmers!</p>
+                </div>
+                <a 
+                    href="/" 
+                    class="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                >
+                    Go to Login
+                </a>
+            </div>
+        {/if}
     </div>
 </div>
