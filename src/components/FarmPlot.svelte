@@ -142,8 +142,8 @@
 
 <Card className="p-4 sm:p-6 lg:p-8 bg-white/90 backdrop-blur">
   <div class="relative mb-6">
-    <!-- Automation Control - Fixed in top right -->
-    <div class="absolute top-0 right-0 flex flex-col gap-2 sm:gap-3">
+    <!-- Controls - Desktop: Fixed in top right, Mobile: Above content -->
+    <div class="absolute top-0 right-0 hidden sm:flex flex-col gap-2 sm:gap-3">
       <label class="flex items-center gap-2 bg-white/80 px-2 sm:px-3 py-1 sm:py-2 rounded-lg border border-green-200 shadow-sm">
         <input
           class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
@@ -192,8 +192,59 @@
       {/if}
     </div>
     
-    <!-- Centered Content -->
-    <div class="text-center pr-20 sm:pr-32 lg:pr-40">
+    <!-- Mobile Controls - Above content -->
+    <div class="flex sm:hidden justify-center gap-4 mb-4">
+      <label class="flex items-center gap-2 bg-white/80 px-3 py-2 rounded-lg border border-green-200 shadow-sm">
+        <input
+          class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+          type="checkbox"
+          name="automate-mobile"
+          id="automate-mobile"
+          bind:checked={automated}
+          on:change={onAutomate}
+        />
+        <span class="text-sm font-medium text-gray-700">
+          🤖 {automating ? "Activating..." : automated ? "Auto" : "Manual"}
+        </span>
+      </label>
+      
+      <label class="flex items-center gap-2 bg-white/80 px-3 py-2 rounded-lg border border-green-200 shadow-sm">
+        <input
+          class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+          type="checkbox"
+          name="music-mobile"
+          id="music-mobile"
+          bind:checked={showMusicPlayer}
+        />
+        <span class="text-sm font-medium text-gray-700">
+          🎵 Music
+        </span>
+      </label>
+    </div>
+    
+    <!-- Mobile Music Player -->
+    {#if showMusicPlayer}
+      <div class="sm:hidden bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
+        <audio controls class="w-full" preload="auto" autoplay>
+          <source src="./kale-farmer-song.mp3" type="audio/mpeg">
+          <source src="/kale-farmer-song.mp3" type="audio/mpeg">
+          <source src="https://kalepail.github.io/kale-site/kale-farmer-song.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+    {/if}
+    
+    <!-- Mobile Automation Info -->
+    {#if automated}
+      <div class="sm:hidden bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4 text-center">
+        <div class="text-blue-700 font-medium text-sm">Next:</div>
+        <div class="font-mono text-blue-800 text-sm">{nextTractorRun ? new Date(nextTractorRun * 1000).toLocaleTimeString() : 'Calculating...'}</div>
+        <div class="text-blue-600 text-sm">({errors} errors)</div>
+      </div>
+    {/if}
+    
+    <!-- Centered Content - Always centered -->
+    <div class="text-center">
       <h2 class="text-xl sm:text-2xl font-bold text-green-700 mb-2">Your Farm</h2>
       <p class="text-sm sm:text-base text-green-600">Click on the land block to plant, work or harvest!</p>
       {#if !pails.get(Array.from(blocks.keys())[0])?.[0]}
