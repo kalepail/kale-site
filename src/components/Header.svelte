@@ -113,8 +113,24 @@
 </script>
 
 <header class="bg-white/95 backdrop-blur border-b border-green-200 sticky top-0 z-40 mb-6">
-    <div class="px-6 py-4">
-        <div class="flex items-center justify-between mb-4">
+    <div class="px-4 sm:px-6 py-4">
+        <!-- Mobile Header -->
+        <div class="flex items-center justify-between mb-4 lg:hidden">
+            <h1 class="text-2xl font-bold text-green-800">
+                <a href="/" class="hover:text-green-600 transition-colors">
+                    KALE
+                </a>
+            </h1>
+            
+            {#if $contractId}
+                <div class="flex items-center gap-2 bg-green-100 px-3 py-1 rounded-full font-bold text-sm">
+                    <span>{Number($contractBalance ?? 0) / 1e7} KALE</span>
+                </div>
+            {/if}
+        </div>
+
+        <!-- Desktop Header -->
+        <div class="hidden lg:flex items-center justify-between mb-4">
             <h1 class="text-3xl font-bold text-green-800 flex items-center gap-2">
                 <a href="/" class="hover:text-green-600 transition-colors">
                     KALE
@@ -140,60 +156,81 @@
             {/if}
         </div>
         
-        <div class="flex items-center justify-between">
-            <nav class="flex items-center gap-6">
-                <a href="/" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+        <!-- Navigation -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Mobile Cool Mode Toggle -->
+            <div class="lg:hidden">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                        class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                        type="checkbox"
+                        bind:checked={animationEnabled}
+                        title={animationEnabled ? "Disable cool mode" : "Enable cool mode"}
+                    />
+                    <span class="text-sm font-medium text-gray-600 flex items-center gap-1">
+                        {animationEnabled ? "🎆" : "🎇"}
+                        Cool mode
+                    </span>
+                </label>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex flex-wrap items-center gap-2 sm:gap-4 lg:gap-6">
+                <a href="/" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1 text-sm sm:text-base">
                     Home
                 </a>
-                <a href="/demo" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                <a href="/demo" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1 text-sm sm:text-base">
                     Demo
                 </a>
-                <a href="/leaderboard" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                <a href="/leaderboard" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1 text-sm sm:text-base">
                     Leaderboard
                 </a>
-                <a href="/about" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                <a href="/about" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1 text-sm sm:text-base">
                     About
                 </a>
-                <a href="/chat" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1">
+                <a href="/chat" class="text-green-700 hover:text-green-600 font-medium transition-colors px-2 py-1 text-sm sm:text-base">
                     Chat
                 </a>
             </nav>
 
-            <div class="flex items-center gap-3">
+            <!-- User Actions -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                 {#if $contractId}
-                    <a
-                        class="font-mono text-sm text-green-600 hover:text-green-800 underline"
-                        href="https://stellar.expert/explorer/public/contract/{$contractId}"
-                        target="_blank"
-                    >
-                        {truncate($contractId, 4)}
-                    </a>
+                    <div class="flex items-center gap-2">
+                        <a
+                            class="font-mono text-xs sm:text-sm text-green-600 hover:text-green-800 underline"
+                            href="https://stellar.expert/explorer/public/contract/{$contractId}"
+                            target="_blank"
+                        >
+                            {truncate($contractId, 4)}
+                        </a>
+                        <button 
+                            class="text-green-600 hover:text-green-800 text-xs sm:text-sm font-medium transition-colors px-2 py-1" 
+                            on:click={copyContractId}
+                            title="Copy Contract ID"
+                        >
+                            Copy
+                        </button>
+                    </div>
                     <button 
-                        class="text-green-600 hover:text-green-800 text-sm font-medium transition-colors" 
-                        on:click={copyContractId}
-                        title="Copy Contract ID"
-                    >
-                        Copy
-                    </button>
-                    <button 
-                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base" 
                         on:click={logout}
                     >
                         Logout
                     </button>
                 {:else}
                     <button 
-                        class="text-green-700 hover:text-green-600 font-medium transition-colors" 
+                        class="text-green-700 hover:text-green-600 font-medium transition-colors text-sm sm:text-base px-2 py-1" 
                         on:click={login}
                     >
                         Login
                     </button>
                     <button
-                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:bg-gray-400"
+                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-medium transition-colors disabled:bg-gray-400 text-sm sm:text-base"
                         on:click={signUp}
                         disabled={creating}
                     >
-                        {creating ? "Creating..." : "Create New Account"}
+                        {creating ? "Creating..." : "Create Account"}
                     </button>
                 {/if}
             </div>

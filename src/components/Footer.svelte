@@ -3,9 +3,9 @@
 </script>
 
 <footer class="bg-gradient-to-r from-green-50 to-blue-50 border-t border-green-200 mt-16">
-  <div class="max-w-7xl mx-auto px-6 py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
     <!-- Main Footer Content -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
       <!-- KALE Brand -->
       <div class="space-y-4">
         <h3 class="text-2xl font-bold text-green-800 flex items-center gap-2">

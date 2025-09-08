@@ -31,20 +31,20 @@
       id="transfer-address"
       placeholder="Endereço de destino"
       bind:value={send_address}
-      className="w-full text-sm"
+      className="w-full text-xs sm:text-sm"
     />
     
-    <div class="flex gap-2">
+    <div class="flex flex-col sm:flex-row gap-2">
       <Input
         id="transfer-amount"
         placeholder="Quantidade"
         type="number"
         bind:value={send_amount}
-        className="flex-1 text-sm"
+        className="flex-1 text-xs sm:text-sm"
       />
       <Button 
         on:click={handleTransfer}
-        className="px-4 py-2 text-sm"
+        className="px-3 py-2 text-xs sm:text-sm w-full sm:w-auto"
         disabled={!send_address || !send_amount}
         loading={transferring}
       >

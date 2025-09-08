@@ -550,19 +550,20 @@
 {#if $contractId}
     <div class="flex justify-center mb-6">
         <button
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm sm:text-base"
             on:click={() => showAdvancedSettings = !showAdvancedSettings}
         >
             <span>⚙️</span>
-            <span>{showAdvancedSettings ? 'Hide' : 'Show'} Advanced Settings</span>
+            <span class="hidden sm:inline">{showAdvancedSettings ? 'Hide' : 'Show'} Advanced Settings</span>
+            <span class="sm:hidden">{showAdvancedSettings ? 'Hide' : 'Show'}</span>
         </button>
     </div>
 {/if}
 
 <!-- Advanced Settings Panel -->
 {#if showAdvancedSettings && $contractId}
-    <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-6 mb-6">
-        <h2 class="text-xl font-bold text-green-700 mb-4">Advanced Settings</h2>
+    <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-4 sm:p-6 mb-6">
+        <h2 class="text-lg sm:text-xl font-bold text-green-700 mb-4">Advanced Settings</h2>
         
         <div class="space-y-4">
             <label class="flex items-center gap-3">
@@ -606,12 +607,12 @@
 />
 
 <!-- Main Actions Section -->
-<div class="mt-8 space-y-6">
+<div class="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
     <!-- Quick Actions -->
-    <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-6">
-        <h2 class="text-xl font-bold text-green-700 mb-4">Quick Actions</h2>
+    <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-4 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-green-700 mb-4">Quick Actions</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <!-- Harvest Settings -->
             <div class="space-y-3">
                 <label class="flex items-center gap-3">
@@ -628,12 +629,12 @@
                 {#if harvest_with_tractor && automated && next_tractor_run}
                     <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
                         <div class="text-sm text-blue-700">Next Automatic Execution:</div>
-                        <div class="font-mono text-blue-800">{new Date(next_tractor_run * 1000).toLocaleTimeString()}</div>
+                        <div class="font-mono text-blue-800 text-sm sm:text-base">{new Date(next_tractor_run * 1000).toLocaleTimeString()}</div>
                     </div>
                 {/if}
                 
                 <button
-                    class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium disabled:bg-gray-400 transition-colors"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium disabled:bg-gray-400 transition-colors text-sm sm:text-base"
                     disabled={harvesting}
                     on:click={() => harvestWithTractor()}
                 >
@@ -657,19 +658,19 @@
     
     <!-- Harvestable Pails -->
     {#if Array.from(pails).some(([_, pail]) => pail[1] && !pail[4])}
-        <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-4">Ready to Harvest</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="bg-white/90 backdrop-blur border border-green-200 rounded-xl p-4 sm:p-6">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Ready to Harvest</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {#each Array.from(pails).sort(([index_a], [index_b]) => index_b - index_a) as [pail_index, [_planted, worked, _staked, _zeros_gap, harvested]] (pail_index)}
                     {#if worked && !harvested}
                         <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div>
                                     <div class="font-mono text-sm font-bold">Lot {pail_index}</div>
                                     <div class="text-xs text-gray-600">Ready to harvest</div>
                                 </div>
                                 <button
-                                    class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm font-medium disabled:bg-gray-400 transition-colors"
+                                    class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm font-medium disabled:bg-gray-400 transition-colors w-full sm:w-auto"
                                     on:click={() => harvest(pail_index)}
                                     disabled={harvesting || pail_index === index}
                                 >
