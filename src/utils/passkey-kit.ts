@@ -26,8 +26,8 @@ export const kale = sac.getSACClient(import.meta.env.PUBLIC_KALE_SAC_ID);
 
 /**
  * Send a transaction through the relayer.
- * - In development: calls server.send() directly (API key auth)
- * - In production: sends to proxy with Turnstile header (Turnstile auth)
+ * - In development (with API key): calls server.send() directly
+ * - In production (no API key): sends to relayer URL with Turnstile header
  */
 export async function send<T>(txn: AssembledTransaction<T> | Tx | string) {
     // Extract XDR from transaction
@@ -40,23 +40,18 @@ export async function send<T>(txn: AssembledTransaction<T> | Tx | string) {
         xdr = txn;
     }
 
-    // In development, use server.send directly (API key auth)
-    if (import.meta.env.DEV) {
+    // If we have an API key, use server.send directly
+    if (import.meta.env.PUBLIC_RELAYER_API_KEY) {
         return server.send(xdr);
     }
 
-    // In production, send to proxy with Turnstile token
+    // Otherwise, send to relayer URL with Turnstile token
     const token = get(turnstileToken);
     if (!token) {
         throw new Error('Turnstile token not available');
     }
 
-    const proxyUrl = import.meta.env.PUBLIC_RELAYER_PROXY_URL;
-    if (!proxyUrl) {
-        throw new Error('Relayer proxy URL not configured');
-    }
-
-    const response = await fetch(proxyUrl, {
+    const response = await fetch(import.meta.env.PUBLIC_RELAYER_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -67,7 +62,7 @@ export async function send<T>(txn: AssembledTransaction<T> | Tx | string) {
 
     if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Relayer proxy error: ${error}`);
+        throw new Error(`Relayer error: ${error}`);
     }
 
     return response.json();
