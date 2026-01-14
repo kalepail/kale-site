@@ -11,7 +11,7 @@ export const account = new PasskeyKit({
     timeoutInSeconds: 30,
 });
 
-export const server = new PasskeyServer({
+const server = new PasskeyServer({
     rpcUrl: import.meta.env.PUBLIC_RPC_URL,
     relayerUrl: import.meta.env.PUBLIC_RELAYER_URL,
     relayerApiKey: import.meta.env.PUBLIC_RELAYER_API_KEY,
@@ -54,10 +54,9 @@ export async function send<T>(txn: AssembledTransaction<T> | Tx | string) {
     const response = await fetch(import.meta.env.PUBLIC_RELAYER_URL, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-Turnstile-Token': token,
         },
-        body: JSON.stringify({ xdr }),
+        body: new URLSearchParams({ xdr }),
     });
 
     if (!response.ok) {
