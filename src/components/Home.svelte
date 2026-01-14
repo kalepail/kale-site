@@ -14,14 +14,13 @@
     import { countZeros, getPails, setBlocks, getBlocks, getRandomNumber, getMinuteOffsetFromSecretKey, getNextTractorTime, truncate } from "../utils/base";
     import { Address, Keypair } from "@stellar/stellar-sdk";
     import { Api } from "@stellar/stellar-sdk/rpc";
-    import { account, kale, setLTHeaders, server } from "../utils/passkey-kit";
+    import { account, kale, send } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
     import {
         contractBalance,
         updateContractBalance,
     } from "../store/contractBalance";
     import { SignerStore, type SignerLimits } from "passkey-kit";
-    import { turnstileToken } from "../store/turnstileToken";
 
     let interval: NodeJS.Timeout;
 
@@ -66,12 +65,6 @@
 
     onDestroy(() => {
         if (interval) clearInterval(interval);
-    });
-
-    turnstileToken.subscribe((token) => {
-        if (token) {
-            setLTHeaders(token);
-        }
     });
 
     contractId.subscribe(async (cid) => {
@@ -236,7 +229,7 @@
             );
 
             // @ts-ignore
-            await server.send(at);
+            await send(at);
 
             console.log("Successfully planted", amount);
             localStorage.setItem(`kale:${i ?? index}:plant`, amount.toString());
@@ -298,7 +291,7 @@
             }
 
             // @ts-ignore
-            await server.send(at);
+            await send(at);
 
             console.log("Successfully worked", at.result);
             localStorage.setItem(
@@ -344,7 +337,7 @@
             }
 
             // @ts-ignore
-            await server.send(at);
+            await send(at);
 
             console.log("Successfully harvested", at.result);
             localStorage.setItem(`kale:${index}:harvest`, at.result.toString());
@@ -412,7 +405,7 @@
             }
 
             // @ts-ignore
-            await server.send(at);
+            await send(at);
 
             console.log("Successfully harvested", at.result.reduce((acc, r) => acc += r, BigInt(0)));
             console.log('result', at.result)
@@ -472,7 +465,7 @@
 
                 await account.sign(at, { keyId: $keyId });
 
-                await server.send(at);
+                await send(at);
 
                 sessionStorage.setItem(`kale:secret`, secret);
 
@@ -500,7 +493,7 @@
 
             await account.sign(at, { keyId: $keyId });
 
-            await server.send(at);
+            await send(at);
 
             await updateContractBalance($contractId);
 
@@ -831,9 +824,3 @@
     >
 </p> -->
 
-<p class="mt-2">
-    <a
-        class="underline text-blue-600"
-        href="/launchtube">Buy a Launchtube token</a
-    >
-</p>

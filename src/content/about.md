@@ -100,7 +100,7 @@ Boast about your KALE harvest in the [#kale channel in the Stellar Global Discor
 
 Delve into the [KALE lore](https://kalepail.com/kale); more chapters will be released as the KALE adventure continues.
 
-To learn how to farm KALE without the web application, visit the KALEpail Project [GitHub page](https://github.com/kalepail/KALE-sc). You’ll most likely want to use Launchtube tokens when farming KALE outside of the web application. Get Launchtube tokens by asking for one in Discord or buying a token with your hard-earned KALE by clicking the [Buy a Launchtube token link](https://kalefarm.xyz/launchtube/) at the bottom of the web application page.
+To learn how to farm KALE without the web application, visit the KALEpail Project [GitHub page](https://github.com/kalepail/KALE-sc).
 
 Trade your KALE for other vegetables at the [KaleFail Trading Post](https://kalefail.elliotfriend.com/)! Then trade your vegetables for a salad NFT in the [KaleFail Kitchen](https://kalefail.elliotfriend.com/kitchen)! 
 

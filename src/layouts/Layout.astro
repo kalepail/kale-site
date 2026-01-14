@@ -4,6 +4,7 @@ interface Props {
 }
 
 const { title } = Astro.props;
+const isProd = import.meta.env.PROD;
 
 import "../styles/global.css";
 import DomainAlert from "../components/DomainAlert.svelte";
@@ -18,7 +19,7 @@ import DomainAlert from "../components/DomainAlert.svelte";
 		<link rel="icon" type="image/png" href="/favicon.png" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
-		
+
 		<meta property="og:title" content={title}>
 		<meta property="og:description" content="A Proof-of-Teamwork Stellar asset powered by Soroban">
 		<meta property="og:image" content="https://farm.kalepail.com/meta.jpg">
@@ -30,28 +31,30 @@ import DomainAlert from "../components/DomainAlert.svelte";
 		<meta name="twitter:description" content="A Proof-of-Teamwork Stellar asset powered by Soroban">
 		<meta name="twitter:image" content="https://farm.kalepail.com/meta.jpg">
 
-		<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" is:inline></script>
+		{isProd && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" is:inline></script>}
 	</head>
 	<body>
 		<DomainAlert client:only="svelte" />
 		<slot />
 
-		<div class="cf-turnstile"></div>
+		{isProd && <div class="cf-turnstile"></div>}
 
-		<script>
-			import { turnstileCallback } from "../store/turnstileToken";
+		{isProd && (
+			<script>
+				import { turnstileCallback } from "../store/turnstileToken";
 
-			turnstile.ready(() => {
-				turnstile.render(".cf-turnstile", {
-					appearance: "interaction-only",
-					sitekey: `${import.meta.env.PROD ? '0x4AAAAAABBPiK_8QHc6n8E4' : '1x00000000000000000000AA'}`,
-					'response-field': false,
-					// @ts-ignore
-					'feedback-enabled': false,
-					callback: (token: string) => turnstileCallback(token),
-					'error-callback': (error: any) => console.error(error),
+				turnstile.ready(() => {
+					turnstile.render(".cf-turnstile", {
+						appearance: "interaction-only",
+						sitekey: '0x4AAAAAABBPiK_8QHc6n8E4',
+						'response-field': false,
+						// @ts-ignore
+						'feedback-enabled': false,
+						callback: (token: string) => turnstileCallback(token),
+						'error-callback': (error: any) => console.error(error),
+					});
 				});
-			});
-		</script>
+			</script>
+		)}
 	</body>
 </html>

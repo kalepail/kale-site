@@ -3,7 +3,7 @@
     import { contractId } from "../store/contractId";
     import { keyId } from "../store/keyId";
     import { rpc } from "../utils/kale";
-    import { account, server } from "../utils/passkey-kit";
+    import { account, send } from "../utils/passkey-kit";
 
     let upgrading = false;
 
@@ -65,7 +65,7 @@
 
             try {
                 await account.sign(at, { keyId: $keyId });
-                await server.send(at);
+                await send(at);
             } catch (err) {
                 console.error("Error sending transaction:", err);
                 alert("Failed to send transaction");

@@ -2,13 +2,12 @@
     import { onMount } from "svelte";
     import { keyId } from "../store/keyId";
     import { contractId } from "../store/contractId";
-    import { account, setLTHeaders, server } from "../utils/passkey-kit";
+    import { account, send } from "../utils/passkey-kit";
     import { truncate } from "../utils/base";
     import {
         contractBalance,
         updateContractBalance,
     } from "../store/contractBalance";
-    import { turnstileToken } from "../store/turnstileToken";
     import copy from 'copy-to-clipboard'
 
     let creating = false;
@@ -21,12 +20,6 @@
             });
 
             contractId.set(cid);
-        }
-    });
-
-    turnstileToken.subscribe((token) => {
-        if (token) {
-            setLTHeaders(token);
         }
     });
 
@@ -59,7 +52,7 @@
                 "KALE Farmer",
             );
 
-            await server.send(signedTx);
+            await send(signedTx);
 
             keyId.set(keyIdBase64);
             localStorage.setItem("kale:keyId", keyIdBase64);
@@ -106,8 +99,6 @@
         <a href="/leaderboard">Leaderboard</a>
         <span class="mx-1">|</span>
         <a href="/about">About</a>
-        <!-- <span class="mx-1">|</span>
-        <a href="/launchtube">Launchtube</a> -->
         <span class="mx-1">|</span>
         <a href="/chat">Chat</a>
         <span class="mx-1">|</span>

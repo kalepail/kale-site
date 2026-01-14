@@ -9,11 +9,10 @@
     import { onDestroy, onMount } from "svelte";
     import { Client } from "kale-chat-sdk";
     import { contractId } from "../store/contractId";
-    import { account, server, setLTHeaders } from "../utils/passkey-kit";
+    import { account, send } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
     import { rpc } from "../utils/kale";
     import { updateContractBalance } from "../store/contractBalance";
-    import { turnstileToken } from "../store/turnstileToken";
 
     const chatContractId =
         "CBLMESJRDFWQFP74WAXZGBXIMXS5ANIATUA6MUVZWZBR2347XRYYHKFU";
@@ -52,12 +51,6 @@
 
     onDestroy(() => {
         if (interval) clearInterval(interval);
-    });
-
-    turnstileToken.subscribe((token) => {
-        if (token) {
-            setLTHeaders(token);
-        }
     });
 
     async function getMsgs() {
@@ -171,7 +164,7 @@
             at = await account.sign(at, { keyId: $keyId });
 
             // @ts-ignore
-            await server.send(at);
+            await send(at);
 
             await updateContractBalance($contractId);
 
