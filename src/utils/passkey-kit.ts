@@ -54,7 +54,7 @@ export async function send<T>(txn: AssembledTransaction<T> | Tx | string) {
     const response = await fetch(import.meta.env.PUBLIC_RELAYER_URL, {
         method: 'POST',
         headers: {
-            'X-Turnstile-Token': token,
+            'X-Turnstile-Response': token,
         },
         body: new URLSearchParams({ xdr }),
     });
