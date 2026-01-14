@@ -1,13 +1,13 @@
 ---
+import "../styles/global.css";
+import DomainAlert from "../components/DomainAlert.svelte";
+
 interface Props {
 	title: string;
 }
 
 const { title } = Astro.props;
 const isProd = import.meta.env.PROD;
-
-import "../styles/global.css";
-import DomainAlert from "../components/DomainAlert.svelte";
 ---
 
 <!doctype html>
@@ -39,10 +39,10 @@ import DomainAlert from "../components/DomainAlert.svelte";
 
 		{isProd && <div class="cf-turnstile"></div>}
 
-		{isProd && (
-			<script>
-				import { turnstileCallback } from "../store/turnstileToken";
+		<script>
+			import { turnstileCallback } from "../store/turnstileToken";
 
+			if (import.meta.env.PROD) {
 				turnstile.ready(() => {
 					turnstile.render(".cf-turnstile", {
 						appearance: "interaction-only",
@@ -54,7 +54,7 @@ import DomainAlert from "../components/DomainAlert.svelte";
 						'error-callback': (error: any) => console.error(error),
 					});
 				});
-			</script>
-		)}
+			}
+		</script>
 	</body>
 </html>

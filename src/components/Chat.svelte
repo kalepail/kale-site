@@ -9,7 +9,7 @@
     import { onDestroy, onMount } from "svelte";
     import { Client } from "kale-chat-sdk";
     import { contractId } from "../store/contractId";
-    import { account, send } from "../utils/passkey-kit";
+    import { account, send as sendTransaction } from "../utils/passkey-kit";
     import { keyId } from "../store/keyId";
     import { rpc } from "../utils/kale";
     import { updateContractBalance } from "../store/contractBalance";
@@ -164,7 +164,7 @@
             at = await account.sign(at, { keyId: $keyId });
 
             // @ts-ignore
-            await send(at);
+            await sendTransaction(at);
 
             await updateContractBalance($contractId);
 
