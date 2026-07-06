@@ -12,6 +12,5 @@
     "kale-sc-sdk",
     "node_modules",
     "wasm-miner",
-    "zephyr",
   ]
 }
