@@ -1,7 +1,10 @@
 import { Address, scValToNative, xdr } from "@stellar/stellar-sdk";
-import { Durability, Server } from "@stellar/stellar-sdk/rpc";
+import { Durability } from "@stellar/stellar-sdk/rpc";
 import { Client } from "kale-sc-sdk";
 import { Client as TractorClient } from "kale-tractor-sdk";
+import { rpc } from "./rpc";
+
+export { rpc };
 
 export interface Block {
     timestamp?: bigint,
@@ -22,8 +25,6 @@ export interface Pail {
     stake: bigint,
     zeros: bigint | undefined,
 }
-
-export const rpc = new Server(import.meta.env.PUBLIC_RPC_URL);
 
 export const contract = new Client({
     rpcUrl: import.meta.env.PUBLIC_RPC_URL,
