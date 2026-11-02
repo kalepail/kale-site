@@ -39,37 +39,57 @@
 
     onMount(async () => {
         await getMsgs();
+        await getRecentEvents();
 
-        const { sequence } = await rpc.getLatestLedger();
-        await getEvents(sequence - 17_280); // last 24 hrs
-
-        interval = setInterval(async () => {
-            const { sequence } = await rpc.getLatestLedger();
-            await getEvents(sequence - 17_280); // last 24 hrs
-        }, 12_000); // 5 times per minute
+        interval = setInterval(getRecentEvents, 12_000); // 5 times per minute
     });
 
     onDestroy(() => {
         if (interval) clearInterval(interval);
     });
 
+    // Stored history from kale-worker. A failure here must not stop the live RPC feed below.
     async function getMsgs() {
-        msgs = await fetch(
-            "https://kale-worker.sdf-ecosystem.workers.dev/chat",
-        ).then((res) => {
-            if (res.ok) return res.json();
-            else throw new Error("Failed to fetch msgs");
-        }).then((msgs) => {
-            return msgs.map((event: any) => {
-                return {
-                    ...event,
-                    timestamp: new Date(event.timestamp),
-                }
-            })
-        })
+        try {
+            const res = await fetch(
+                "https://kale-worker.sdf-ecosystem.workers.dev/chat",
+            );
+            if (!res.ok) throw new Error(`Failed to fetch msgs: ${res.status}`);
 
-        msgs = msgs.sort(
-            (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+            const stored = await res.json();
+            if (!Array.isArray(stored)) return;
+
+            for (const event of stored) {
+                if (!hasMsg(event)) {
+                    msgs.push({
+                        ...event,
+                        timestamp: new Date(event.timestamp),
+                    });
+                }
+            }
+
+            msgs = msgs.sort(
+                (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+            );
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function getRecentEvents() {
+        try {
+            const { sequence } = await rpc.getLatestLedger();
+            await getEvents(sequence - 17_280); // last 24 hrs
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Stored history and live RPC events can carry different ids for the same message, so match
+    // on the transaction hash too.
+    function hasMsg(event: { id: string; txHash: string }) {
+        return msgs.some(
+            ({ id, txHash }) => id === event.id || txHash === event.txHash,
         );
     }
 
@@ -102,33 +122,16 @@
                         if (event.type !== "contract" || !event.contractId)
                             return;
                             
-                        if (
-                            msgs.findIndex(({ id }) => id === event.id) === -1
-                        ) {
-                            let addr: string | undefined;
-                            let topic0 = xdr.ScVal.fromXDR(
-                                event.topic[0],
-                                "base64",
-                            ).address();
-                            let value = xdr.ScVal.fromXDR(
+                        if (!event.topic?.length) return;
+
+                        if (!hasMsg(event)) {
+                            const addr = Address.fromScVal(
+                                xdr.ScVal.fromXDR(event.topic[0], "base64"),
+                            ).toString();
+                            const value = xdr.ScVal.fromXDR(
                                 event.value,
                                 "base64",
                             );
-
-                            switch (topic0.switch().name) {
-                                case "scAddressTypeAccount": {
-                                    addr = Address.account(
-                                        topic0.accountId().ed25519(),
-                                    ).toString();
-                                    break;
-                                }
-                                case "scAddressTypeContract": {
-                                    addr = Address.contract(
-                                        topic0.contractId(),
-                                    ).toString();
-                                    break;
-                                }
-                            }
 
                             msgs.push({
                                 id: event.id,
